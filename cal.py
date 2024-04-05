@@ -23,23 +23,29 @@ def multi_project(p: tuple[float, float, float], s: tuple[float, float, float]):
     y_Ms = sqrt((x_p - x_d) ** 2 + (y_p - y_d) ** 2 + (z_p - z_d) ** 2)
 
     s1 = (x_s1, y_s1, z_s1)
-    theta_mps1 = cal_cos_angle(s1, (x_m, y_m, 0), p)
+    try:
+        theta_mps1 = cal_cos_angle(s1, (x_m, y_m, 0), p)
+    except ZeroDivisionError:
+        theta_mps1 = 1
 
     if x_p != 0 and y_p != 0:
-        if x_p * y_p > 0:
-            theta_gps1 = cal_cos_angle(s1, (x_p/2, x_p**2/(2*y_p)+y_p, z_p), p)
-        elif x_p * y_p < 0:
-            theta_gps1 = cal_cos_angle(s1, (y_p**2/(2*x_p)+x_p, y_p/2, z_p), p)
-        elif x_p == 0:
-            if y_p > 0:
-                theta_gps1 = cal_cos_angle(s1, (-1, y_p, z_p), p)
-            else:  # y_p < 0
-                theta_gps1 = cal_cos_angle(s1, (1, y_p, z_p), p)
-        else:  # y_p == 0
-            if x_p > 0:
-                theta_gps1 = cal_cos_angle(s1, (x_p, 1, z_p), p)
-            else:  # x_p < 0
-                theta_gps1 = cal_cos_angle(s1, (x_p, -1, z_p), p)
+        try:
+            if x_p * y_p > 0:
+                theta_gps1 = cal_cos_angle(s1, (x_p/2, x_p**2/(2*y_p)+y_p, z_p), p)
+            elif x_p * y_p < 0:
+                theta_gps1 = cal_cos_angle(s1, (y_p**2/(2*x_p)+x_p, y_p/2, z_p), p)
+            elif x_p == 0:
+                if y_p > 0:
+                    theta_gps1 = cal_cos_angle(s1, (-1, y_p, z_p), p)
+                else:  # y_p < 0
+                    theta_gps1 = cal_cos_angle(s1, (1, y_p, z_p), p)
+            else:  # y_p == 0
+                if x_p > 0:
+                    theta_gps1 = cal_cos_angle(s1, (x_p, 1, z_p), p)
+                else:  # x_p < 0
+                    theta_gps1 = cal_cos_angle(s1, (x_p, -1, z_p), p)
+        except ZeroDivisionError:
+            theta_gps1 = 1
 
         if theta_mps1 > 0:
             y_Ms = - y_Ms
@@ -108,7 +114,6 @@ def single_project(s: tuple[float, float, float], r0: float, theta_xy: float, th
         if y_s1 < 0:
             y_Ms = - y_Ms
 
-    assert x_s1 <= x_h or y_s1 <= y_h
     return x_Ms, y_Ms
 
 
@@ -124,9 +129,10 @@ def cal_cos_angle(P1: tuple[float, float, float],
     try:
         return (OP1_2 + OP2_2 - P1P2_2) / (2*sqrt(OP1_2)*sqrt(OP2_2))
     except Exception as e:
-        print(e)
-        print(f"{P1}\n{P2}\n{O}")
-        print(f"{OP1_2}\t{OP2_2}\t{P1P2_2}")
+        raise
+        # print(e)
+        # print(f"{P1}\n{P2}\n{O}")
+        # print(f"{OP1_2}\t{OP2_2}\t{P1P2_2}")
 
 
 if __name__ == "__main__":
