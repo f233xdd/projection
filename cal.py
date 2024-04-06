@@ -122,7 +122,6 @@ def cal_cos_angle(P1: tuple[float, float, float],
     OP2_2 = (x0 - x2) ** 2 + (y0 - y2) ** 2 + (z0 - z2) ** 2
     P1P2_2 = (x2 - x1) ** 2 + (y2 - y1) ** 2 + (z2 - z1) ** 2
     try:
-        print((OP1_2 + OP2_2 - P1P2_2) / (2 * sqrt(OP1_2) * sqrt(OP2_2)))
         return (OP1_2 + OP2_2 - P1P2_2) / (2 * sqrt(OP1_2) * sqrt(OP2_2))
     except ZeroDivisionError:
         return 2
