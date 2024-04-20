@@ -1,11 +1,14 @@
 class Base2DGeometricComponent:
     def __init__(self, rgb: str = "#000000") -> None:
-        self._rgb = rgb
-        self._func_arg = None
+        self._rgb: str = rgb
+        self._func_arg: dict = {}
+    
+    @property
+    def rgb(self): return self._rgb
 
 
 class Point(Base2DGeometricComponent):
-    def __init__(self, x, y, rgb: str = "#000000") -> None:
+    def __init__(self, x: float, y: float, rgb: str = "#000000") -> None:
         super().__init__(rgb)
         self._x = x
         self._y = y
@@ -17,7 +20,7 @@ class Point(Base2DGeometricComponent):
     def y(self): return self._y
 
     @property
-    def pos(self): return self._x, self._y
+    def pos(self) -> tuple[float, float]: return self._x, self._y
 
     def is_on(self, cpt: "Line|Plane") -> bool:
         pass
@@ -48,6 +51,12 @@ class Line(Base2DGeometricComponent):
     @property
     def length(self) -> float:
         pass
+    
+    @property
+    def status(self) -> int: return self._status
+    
+    @property
+    def endpoint(self) -> tuple[Point, Point]: return self._endpoint
 
 
 class Plane(Base2DGeometricComponent):

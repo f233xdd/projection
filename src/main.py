@@ -2,22 +2,17 @@ import project
 import tkinter as tk
 from tkinter import ttk
 
+from render import CanvasHandler
+from geo2d import Point
+
 s = [(3, 3, 3), (3, 4, 3), (4, 3, 3), (4, 4, 3),
      (3, 3, 4), (3, 4, 4), (4, 3, 4), (4, 4, 4)]
 # (4, -3, 7)
-p = (-3, -10, -7)
+p = (-34, -3, 7)
 l = [project.multi_project(p, s1) for s1 in s]
 link = [(0, 4), (1, 5), (2, 6), (3, 7), (0, 1), (0, 2), (1, 3), (2, 3), (4, 5), (4, 6), (5, 7), (6, 7)]
 
-root = tk.Tk()
-w = tk.Canvas(root, bg="#FFFFFF", width=800, height=500)
-
-w.grid(column=0, row=0, sticky=tk.NSEW)
-
-
-def paint_point(x, y):
-    w.create_oval(x - 3, y - 3, x + 3, y + 3, fill="black")
-
+c = CanvasHandler(k=50)
 
 print(l)
 d = []
@@ -28,12 +23,9 @@ for i in range(len(l)):
 for j in range(len(d)):
     del l[d[j] - j]
 
-l = [(round(x * 50) + 200, round(y * 50) + 400) for x, y in l]
-print(l)
-for s1 in l:
-    paint_point(*s1)
+l = [Point(*p) for p in l]
+for p in l:
+    c.create_point(p)
 
-for i, j in link:
-    w.create_line(l[i], l[j])
-
-root.mainloop()
+c.create_sight_bead()
+c.show()
