@@ -19,6 +19,11 @@ class ProjectiveLine(Line):
     def combine(self, p1, p2) -> None:
         pass
 
+class ProjectivePlane(Plane):
+    def __init__(self, p1: Point, p2: Point, p3: Point, rgb: str = "#000000") -> None:
+        super().__init__(p1, p2, p3, rgb)
+        self.inner = []
+
 def multi_project(p: tuple[float, float, float], s: tuple[float, float, float]):
     x_p, y_p, z_p = p
     x_s, y_s, z_s = s
