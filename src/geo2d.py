@@ -12,21 +12,26 @@ class Point(Base2DGeometricComponent):
 
     @property
     def x(self): return self._x
+
     @property
     def y(self): return self._y
 
-    def is_on(self, cpt) -> bool:
+    @property
+    def pos(self): return self._x, self._y
+
+    def is_on(self, cpt: "Line|Plane") -> bool:
         pass
 
-    def __is_on_line(self, ln) -> bool:
+    def __is_on_line(self, ln: "Line") -> bool:
         pass
 
-    def __is_on_plane(self, pn) -> bool:
+    def __is_on_plane(self, pn: "Plane") -> bool:
         pass
 
 
 class Line(Base2DGeometricComponent):
-    def __init__(self, p1: Point, p2: Point, status=1, rgb: str = "#000000") -> None:
+    def __init__(self, p1: Point, p2: Point, status: int = 1, rgb: str = "#000000") -> None:
+        assert p1.pos != p2.pos
         super().__init__(rgb)
         self._status = status
         if p1.x <= p2.x:
@@ -47,6 +52,7 @@ class Line(Base2DGeometricComponent):
 
 class Plane(Base2DGeometricComponent):
     def __init__(self, p1: Point, p2: Point, p3: Point, rgb: str = "#000000") -> None:
+        assert p1.pos != p2.pos and p1.pos != p3.pos
         super().__init__(rgb)
         self._endpoint = (p1, p2, p3)
 
@@ -54,8 +60,10 @@ class Plane(Base2DGeometricComponent):
 def cal_d(p1, p2) -> float:
     pass
 
+
 def cal_line_intersection(ln1, ln2) -> Point | None:
     pass
+
 
 def cal_plane_intersection(pl, ln) -> tuple[Point] | None:
     pass

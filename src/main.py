@@ -22,11 +22,11 @@ def paint_point(x, y):
 print(l)
 d = []
 for i in range(len(l)):
-    if l[i] == None:
+    if l[i] is None:
         d.append(i)
 
 for j in range(len(d)):
-    del l[d[j]-j]
+    del l[d[j] - j]
 
 l = [(round(x * 50) + 200, round(y * 50) + 400) for x, y in l]
 print(l)
