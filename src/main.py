@@ -1,4 +1,4 @@
-import cal
+import project
 import tkinter as tk
 from tkinter import ttk
 
@@ -6,11 +6,11 @@ s = [(3, 3, 3), (3, 4, 3), (4, 3, 3), (4, 4, 3),
      (3, 3, 4), (3, 4, 4), (4, 3, 4), (4, 4, 4)]
 # (4, -3, 7)
 p = (-3, -10, -7)
-l = [cal.multi_project(p, s1) for s1 in s]
+l = [project.multi_project(p, s1) for s1 in s]
 link = [(0, 4), (1, 5), (2, 6), (3, 7), (0, 1), (0, 2), (1, 3), (2, 3), (4, 5), (4, 6), (5, 7), (6, 7)]
 
 root = tk.Tk()
-w = tk.Canvas(root, bg='white', width=500, height=500)
+w = tk.Canvas(root, bg="#FFFFFF", width=800, height=500)
 
 w.grid(column=0, row=0, sticky=tk.NSEW)
 
@@ -36,4 +36,4 @@ for s1 in l:
 for i, j in link:
     w.create_line(l[i], l[j])
 
-tk.mainloop()
+root.mainloop()

@@ -1,5 +1,23 @@
 from math import sin, cos, sqrt, radians
 
+from geo2d import Point, Line, Plane
+
+
+class ProjectivePoint(Point):
+    def __init__(self, x, y, tag: str = "A", rgb: str = "#000000") -> None:
+        super().__init__(x, y, rgb)
+        self._tag = tag
+    
+    @property
+    def tag(self): return self._tag
+
+class ProjectiveLine(Line):
+    def __init__(self, p1: Point, p2: Point, status=1, rgb: str = "#000000") -> None:
+        super().__init__(p1, p2, status, rgb)
+        self.parts = []
+    
+    def combine(self, p1, p2) -> None:
+        pass
 
 def multi_project(p: tuple[float, float, float], s: tuple[float, float, float]):
     x_p, y_p, z_p = p
