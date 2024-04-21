@@ -30,7 +30,7 @@ class CanvasHandler:
                                      *self.__transform(ln.endpoint[1].pos, enable_k), dash=(2, 4))
 
     def create_plane(self, pn: Plane, enable_k: bool = True) -> None:
-        pass
+        pass  # TODO
 
     def show(self) -> None:
         self._root.mainloop()
@@ -41,7 +41,7 @@ class CanvasHandler:
 
 class Renderer:
     def __init__(self) -> None:
-        pass
+        pass  # TODO
 
     def render(self) -> None:
-        pass
+        pass  # TODO
