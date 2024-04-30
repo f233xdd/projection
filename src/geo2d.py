@@ -1,6 +1,15 @@
 from math import sqrt
 
 
+ACCURACY = 5
+
+def r(x):
+    return round(x, ACCURACY)
+
+
+def approximate(x, y):
+    return True if abs(x-y) <= 10**-ACCURACY else False
+
 class Base2DGeometricComponent:
     def __init__(self, rgb: str = "#000000") -> None:
         self._rgb: str = rgb
@@ -12,8 +21,11 @@ class Base2DGeometricComponent:
 class Point(Base2DGeometricComponent):
     def __init__(self, x: float, y: float, rgb: str = "#000000") -> None:
         super().__init__(rgb)
-        self._x = x
-        self._y = y
+        self._x = r(x)
+        self._y = r(y)
+
+    def __repr__(self) -> str:
+        return str(self.pos)
 
     @property
     def x(self):
@@ -36,7 +48,7 @@ class Point(Base2DGeometricComponent):
     def __is_on_line(self, ln: "Line") -> bool:
         k1, k2, b = ln.func_arg
         ep = ln.endpoint
-        if k1 * self.y + k2 * self.x == b:
+        if approximate(k1 * self.y + k2 * self.x, b):
             if ep[0].x <= self.x <= ep[1].x and (ep[0].y - self.y) * (ep[1].y - self.y) <= 0:
                 return True
         return False
@@ -71,6 +83,14 @@ class Line(Base2DGeometricComponent):
 
     def is_superposition(self, ln: "Line") -> bool:
         return is_superposition(self, ln)
+
+    def __str__(self) -> str:
+        ed1, ed2 = self.endpoint
+        k1, k2, b = self.func_arg
+        if self.func_arg[0] != 0:
+            return "{(x, y)|" + f"{k1}*y+{k2}*x={b}, {ed1.x}<=x<={ed2.x}" + "}"
+        else:
+            return "{(x, y)|" + f"{k1}*y+{k2}*x={b}, {ed1.y}<=y<={ed2.y}" + "}"
 
     @property
     def length(self) -> float:
@@ -143,6 +163,7 @@ def cal_line_intersection(ln1: Line, ln2: Line) -> Point | None:
     p = Point((k21 * b1 - k11 * b2) / (k12 * k21 - k11 * k22),
               (k22 * b1 - k12 * b2) / (k11 * k22 - k12 * k21))
 
+    print(p.pos)
     return p if p.is_on(ln1) and p.is_on(ln2) else None
 
 
@@ -166,7 +187,7 @@ def cal_line_func(x1: float, y1: float, x2: float, y2: float) -> tuple[float, fl
         k1*y+ k2*x = b
     :return k1, k2, b
     """
-    return x2 - x1, y1 - y2, x2 * y1 - x1 * y2 if x2 != x1 or y2 != y1 else None
+    return r(x2 - x1), r(y1 - y2), r(x2 * y1 - x1 * y2) if x2 != x1 or y2 != y1 else None
 
 
 def is_parallel(ln1: Line, ln2: Line) -> bool:
@@ -195,6 +216,42 @@ def is_superposition(ln1 : Line, ln2: Line) -> bool:
         return False
 
 
+def is_in_polygon(p: Point, borders: list[Line]):
+    for l in borders:
+        if p.is_on(l):
+            return True
+    
+    d = 0
+    ep = None
+    for l in borders:
+        for i in range(2):
+            if d < cal_d(p, l.endpoint[i]):
+                ep = l.endpoint[i]
+                d = cal_d(p, l.endpoint[i])
+    
+    ln = Line(p, ep)
+    res: list[Point] = []
+    for l in borders:
+        r = cal_line_intersection(ln, l)
+        if r:
+            res.append(r)
+
+    i = 0
+    while i < len(res):
+        j = i + 1
+        while j < len(res):
+            if res[i].pos == res[j].pos:
+                del res[j]
+                j += -1
+            j += 1
+        i += 1
+
+    if len(res) % 2 == 0:
+        return False
+    else:
+        return True
+    
+            
 if __name__ == "__main__":
     print("===============Test Case===============")
     pn = Plane(Point(0, 0), Point(1, 2), Point(2, 1))
