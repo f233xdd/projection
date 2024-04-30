@@ -54,37 +54,23 @@ class Line(Base2DGeometricComponent):
         assert p1.pos != p2.pos
         super().__init__(rgb)
         self._status = status
-        if p1.x <= p2.x:
-            self._endpoint = (p1, p2)
-        else:
-            self._endpoint = (p2, p1)
-
-        self._func_arg = (p2.x - p1.x, p1.y - p2.y, p2.x * p1.y - p1.x * p2.y)
+        self._endpoint = [p1, p2]
+        self._func_arg = None
+        self.update_func()
         # (x2-x1)y+(y1-y2)x=x2*y1-x1*y2
 
+    def bind(self, p: Point, ep_idx: int = 0):
+        self._endpoint[ep_idx] = p
+        self.update_func()
+    
+    def update_func(self):
+        self._func_arg = cal_line_func(*self.endpoint[0].pos, *self.endpoint[1].pos)
+
     def is_parallel(self, ln: "Line") -> bool:
-        return True if self._func_arg[0] * ln.func_arg[1] == self._func_arg[1] * ln.func_arg[0] else False
+        return is_parallel(self, ln)
 
     def is_superposition(self, ln: "Line") -> bool:
-        if self.is_parallel(ln):
-            if self._func_arg[0] != 0:
-                if self._func_arg[2] / self._func_arg[0] == ln._func_arg[2] / ln.func_arg[0]:
-                    if self.endpoint[0].x > ln.endpoint[1].x or self.endpoint[1].x < ln.endpoint[0].x:
-                        return False
-                    else:
-                        return True
-                else:
-                    return False
-            else:  # self.func_arg[1] != 0
-                if self._func_arg[2] / self._func_arg[1] == ln._func_arg[2] / ln.func_arg[1]:
-                    if self.endpoint[0].x > ln.endpoint[1].x or self.endpoint[1].x < ln.endpoint[0].x:
-                        return False
-                    else:
-                        return True
-                else:
-                    return False
-        else:
-            return False
+        return is_superposition(self, ln)
 
     @property
     def length(self) -> float:
@@ -97,10 +83,19 @@ class Line(Base2DGeometricComponent):
 
     @property
     def endpoint(self) -> tuple[Point, Point]:
-        return self._endpoint
+        if self._endpoint[0].x < self._endpoint[1].x:
+            return self._endpoint[0], self._endpoint[1]
+        elif self._endpoint[0].x > self._endpoint[1].x:
+            return self._endpoint[1], self._endpoint[0]
+        else:
+            if self._endpoint[0].y <= self._endpoint[1].y:
+                return self._endpoint[0], self._endpoint[1]
+            else:
+                return self._endpoint[1], self._endpoint[0]
 
     @property
     def func_arg(self) -> tuple[float, float, float]:
+        self.update_func()
         return self._func_arg
 
 
@@ -123,9 +118,10 @@ class Plane(Base2DGeometricComponent):
                 self._border_line[i].append(-1)
 
     @property
-    def border_func_args(self) -> tuple[tuple[float, float, float, int],
-    tuple[float, float, float, int],
-    tuple[float, float, float, int]]:
+    def border_func_args(self) -> \
+        tuple[tuple[float, float, float, int],
+            tuple[float, float, float, int],
+            tuple[float, float, float, int]]:
         return (*self._border_line[0][0].func_arg, self._border_line[0][1]), \
             (*self._border_line[1][0].func_arg, self._border_line[1][1]), \
             (*self._border_line[2][0].func_arg, self._border_line[2][1])
@@ -146,11 +142,12 @@ def cal_line_intersection(ln1: Line, ln2: Line) -> Point | None:
     k21, k22, b2 = ln2.func_arg
     p = Point((k21 * b1 - k11 * b2) / (k12 * k21 - k11 * k22),
               (k22 * b1 - k12 * b2) / (k11 * k22 - k12 * k21))
+
     return p if p.is_on(ln1) and p.is_on(ln2) else None
 
 
 def cal_plane_intersection(pn: Plane, ln: Line) -> list[Point] | None:
-    res: list[Point] = []
+    res = []
     for border in pn.border_lines:
         r = cal_line_intersection(ln, border)
         if r:
@@ -163,6 +160,41 @@ def cal_plane_intersection(pn: Plane, ln: Line) -> list[Point] | None:
     return res if res else None
 
 
+def cal_line_func(x1: float, y1: float, x2: float, y2: float) -> tuple[float, float, float] | None:
+    """
+    function sample:
+        k1*y+ k2*x = b
+    :return k1, k2, b
+    """
+    return x2 - x1, y1 - y2, x2 * y1 - x1 * y2 if x2 != x1 or y2 != y1 else None
+
+
+def is_parallel(ln1: Line, ln2: Line) -> bool:
+    return True if ln1._func_arg[0] * ln2.func_arg[1] == ln1._func_arg[1] * ln2.func_arg[0] else False
+
+
+def is_superposition(ln1 : Line, ln2: Line) -> bool:
+    if ln1.is_parallel(ln2):
+        if ln1._func_arg[0] != 0:
+            if ln1._func_arg[2] / ln1._func_arg[0] == ln2._func_arg[2] / ln2.func_arg[0]:
+                if ln1.endpoint[0].x > ln2.endpoint[1].x or ln1.endpoint[1].x < ln2.endpoint[0].x:
+                    return False
+                else:
+                    return True
+            else:
+                return False
+        else:  # ln1.func_arg[1] != 0
+            if ln1._func_arg[2] / ln1._func_arg[1] == ln2._func_arg[2] / ln2.func_arg[1]:
+                if ln1.endpoint[0].x > ln2.endpoint[1].x or ln1.endpoint[1].x < ln2.endpoint[0].x:
+                    return False
+                else:
+                    return True
+            else:
+                return False
+    else:
+        return False
+
+
 if __name__ == "__main__":
     print("===============Test Case===============")
     pn = Plane(Point(0, 0), Point(1, 2), Point(2, 1))
@@ -171,5 +203,6 @@ if __name__ == "__main__":
     print(p.is_on(pn))
     ln = Line(Point(1, 1), Point(0, 3))
     ln2 = Line(Point(10, 10), Point(0, 30))
-    print(cal_plane_intersection(pn, ln)[0].pos)
+    print(cal_plane_intersection(pn, ln).pop().pos)  # (0.75, 1.5)
     print(ln.is_parallel(ln2))
+
