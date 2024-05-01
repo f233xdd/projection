@@ -1,14 +1,15 @@
 from math import sqrt
 
-
 ACCURACY = 5
+
 
 def r(x):
     return round(x, ACCURACY)
 
 
 def approximate(x, y):
-    return True if abs(x-y) <= 10**(-ACCURACY+1) else False
+    return True if abs(x - y) <= 10 ** (-ACCURACY + 1) else False
+
 
 class Base2DGeometricComponent:
     def __init__(self, rgb: str = "#000000") -> None:
@@ -74,7 +75,7 @@ class Line(Base2DGeometricComponent):
     # def bind(self, p: Point, ep_idx: int = 0):
     #     self._endpoint[ep_idx] = p
     #     self.update_func()
-    
+
     def update_func(self):
         self._func_arg = cal_line_func(*self.endpoint[0].pos, *self.endpoint[1].pos)
 
@@ -139,7 +140,7 @@ class Plane(Base2DGeometricComponent):
 
     @property
     def border_func_args(self) -> \
-        tuple[tuple[float, float, float, int],
+            tuple[tuple[float, float, float, int],
             tuple[float, float, float, int],
             tuple[float, float, float, int]]:
         return (*self._border_line[0][0].func_arg, self._border_line[0][1]), \
@@ -191,7 +192,7 @@ def is_parallel(ln1: Line, ln2: Line) -> bool:
     return True if ln1._func_arg[0] * ln2.func_arg[1] == ln1._func_arg[1] * ln2.func_arg[0] else False
 
 
-def is_superposition(ln1 : Line, ln2: Line) -> bool:
+def is_superposition(ln1: Line, ln2: Line) -> bool:
     k11, k12, b1 = ln1.func_arg
     k21, k22, b2 = ln2.func_arg
     if ln1.is_parallel(ln2):
@@ -219,7 +220,7 @@ def is_in_polygon(p: Point, borders: list[Line]):
     for l in borders:
         if p.is_on(l):
             return True
-    
+
     d = 0
     ep = None
     for l in borders:
@@ -227,7 +228,7 @@ def is_in_polygon(p: Point, borders: list[Line]):
             if d < cal_d(p, l.endpoint[i]):
                 ep = l.endpoint[i]
                 d = cal_d(p, l.endpoint[i])
-    
+
     ln = Line(p, ep)
     res: list[Point] = []
     for l in borders:
@@ -239,7 +240,7 @@ def is_in_polygon(p: Point, borders: list[Line]):
         return False
     else:
         return True
-    
+
 
 def del_repeated_point(points: list[Point]) -> list[Point]:
     i = 0
@@ -252,7 +253,8 @@ def del_repeated_point(points: list[Point]) -> list[Point]:
             j += 1
         i += 1
     return points
-            
+
+
 if __name__ == "__main__":
     print("===============Test Case===============")
     pn = Plane(Point(0, 0), Point(1, 2), Point(2, 1))
@@ -262,4 +264,3 @@ if __name__ == "__main__":
     ln2 = Line(Point(10, 10), Point(0, 30))
     print(cal_plane_intersection(pn, ln).pop().pos)  # (0.75, 1.5)
     assert ln.is_parallel(ln2) is True
-

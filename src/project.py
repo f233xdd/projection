@@ -24,9 +24,8 @@ class ProjectiveLine(Line):
             v = 'x'
         else:
             v = 'y'
-        
+
         i = len(self.parts)
-        ep = None
         while True:
             ln0 = self.parts.pop(0)
             if getattr(ln0.endpoint[0], v) <= getattr(ln.endpoint[0], v) <= getattr(ln0.endpoint[1], v):
@@ -55,8 +54,9 @@ class ProjectiveLine(Line):
             self.parts.append(self.parts.pop(0))
 
 
-
+# noinspection TodoComment
 class ProjectivePlane(Plane):
+    # noinspection TodoComment
     def __init__(self, p1: Point, p2: Point, p3: Point, rgb: str = "#000000") -> None:
         super().__init__(p1, p2, p3, rgb)
         self.inner = []  # TODO
