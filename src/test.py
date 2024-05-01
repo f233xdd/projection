@@ -1,7 +1,9 @@
 from geo2d import *
+from project import *
 
-p = [Point(-1.3873, 3.86814), 
-     Point(-1.20899, 0.80864), 
+
+p = [Point(-1.3873, 3.86814),
+     Point(-1.20899, 0.80864),
      Point(0.17469, 1.97528),
      Point(2.56222, -1.76881),
      Point(5.73656, 3.65741),
@@ -21,5 +23,5 @@ for i in range(len(p)-1):
     l.append(Line(p[i], p[i+1]))
 l.append(Line(p[0], p[-1]))
 
-p1 = Point(-0.6935, -2.06725)
+p1 = Point(-5.77109, -2.78984)
 print(is_in_polygon(p1, l))

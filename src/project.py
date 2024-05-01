@@ -17,8 +17,43 @@ class ProjectiveLine(Line):
         super().__init__(p1, p2, status, rgb)
         self.parts = [Line(self._endpoint[0], self._endpoint[1], 1, rgb=rgb)]
 
-    def combine(self, p1, p2) -> None:
-        pass  # TODO
+    def combine(self, ln: Line) -> None:
+        if not self.is_superposition(ln) or not ln.status == 0:
+            return
+        if self.func_arg[0] != 0:
+            v = 'x'
+        else:
+            v = 'y'
+        
+        i = len(self.parts)
+        ep = None
+        while True:
+            ln0 = self.parts.pop(0)
+            if getattr(ln0.endpoint[0], v) <= getattr(ln.endpoint[0], v) <= getattr(ln0.endpoint[1], v):
+                if ln0.status == 0 or getattr(ln.endpoint[0], v) == getattr(self.endpoint[0], v):
+                    ep = ln0.endpoint[0]
+                else:
+                    self.parts.append(Line(ln0.endpoint[0], ln.endpoint[0], 1))
+                    ep = ln.endpoint[0]
+                i += -1
+                break
+            self.parts.append(ln0)
+            i += -1
+
+        while True:
+            if getattr(ln0.endpoint[1], v) >= getattr(ln.endpoint[1], v):
+                if ln0.status == 0 or getattr(ln.endpoint[1], v) == getattr(self.endpoint[1], v):
+                    self.parts.append(Line(ep, ln0.endpoint[1], 0))
+                else:
+                    self.parts.append(Line(ep, ln.endpoint[1], 0))
+                    self.parts.append(Line(ln.endpoint[1], ln0.endpoint[1], 1))
+                break
+            ln0 = self.parts.pop(0)
+            i += -1
+
+        for __ in range(i):
+            self.parts.append(self.parts.pop(0))
+
 
 
 class ProjectivePlane(Plane):
@@ -167,3 +202,14 @@ if __name__ == "__main__":
 
     cos_theta = cal_cos_angle((2, 2, 4), (-20, 6, 47), (0, 0, 0))
     print("cos(<(2, 2, 4), (-20, 6, 47)>)= ", cos_theta)
+
+    l1 = ProjectiveLine(Point(0, 0), Point(12, 0))
+    l = []
+    for i, j in [(2, 3), (1, 3), (5, 4), (10, 8)]:
+        l.append(Line(Point(i, 0), Point(j, 0), 0))
+
+    for l0 in l:
+        l1.combine(l0)
+
+    for _ in l1.parts:
+        print(_, _.status)
