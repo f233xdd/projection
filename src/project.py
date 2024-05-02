@@ -54,9 +54,7 @@ class ProjectiveLine(Line):
             self.parts.append(self.parts.pop(0))
 
 
-# noinspection TodoComment
 class ProjectivePlane(Plane):
-    # noinspection TodoComment
     def __init__(self, p1: Point, p2: Point, p3: Point, rgb: str = "#000000") -> None:
         super().__init__(p1, p2, p3, rgb)
         self.inner = []  # TODO
@@ -66,22 +64,25 @@ def multi_project(p: tuple[float, float, float], s: tuple[float, float, float]):
     x_p, y_p, z_p = p
     x_s, y_s, z_s = s
 
-    x0 = (x_p ** 2 + y_p ** 2 + z_p ** 2) / x_p
-
     k = x_p ** 2 + y_p ** 2 + z_p ** 2
     x_s1 = (k * x_p + (y_p ** 2 + z_p ** 2) * x_s - (y_p * y_s + z_p * z_s) * x_p) / k
     y_s1 = y_p / x_p * x_s1 + y_s - x_s * y_p / x_p
     z_s1 = z_p / x_p * x_s1 + z_s - x_s * z_p / x_p
 
-    x_m = (x_p ** 2 * x0) / (x_p ** 2 + y_p ** 2)
-    y_m = (x_p * y_p * x0) / (x_p ** 2 + y_p ** 2)
+    try:
+        x0 = (x_p ** 2 + y_p ** 2 + z_p ** 2) / x_p
+        x_m = (x_p ** 2 * x0) / (x_p ** 2 + y_p ** 2)
+        y_m = (x_p * y_p * x0) / (x_p ** 2 + y_p ** 2)
 
-    x_d = (z_s1 - x_m * z_p / (x_m - x_p)) * ((x_p - x_m) / z_p)
-    y_d = ((y_m - y_p) / (x_m - x_p)) * x_d + (x_p * y_m - x_m * y_p) / (x_p - x_m)
-    z_d = z_s1
+        x_d = (z_s1 - x_m * z_p / (x_m - x_p)) * ((x_p - x_m) / z_p)
+        y_d = ((y_m - y_p) / (x_m - x_p)) * x_d + (x_p * y_m - x_m * y_p) / (x_p - x_m)
+        z_d = z_s1
 
-    x = sqrt((x_s1 - x_d) ** 2 + (y_s1 - y_d) ** 2)
-    y = sqrt((x_p - x_d) ** 2 + (y_p - y_d) ** 2 + (z_p - z_d) ** 2)
+        x = sqrt((x_s1 - x_d) ** 2 + (y_s1 - y_d) ** 2)
+        y = sqrt((x_p - x_d) ** 2 + (y_p - y_d) ** 2 + (z_p - z_d) ** 2)
+    except ZeroDivisionError:
+        x = sqrt((x_p - x_s1) ** 2 + (y_p - y_s1) ** 2)
+        y = z_s1
 
     s1 = (x_s1, y_s1, z_s1)
     theta_mps1 = cal_cos_angle(s1, (x_m, y_m, 0), p)
@@ -129,47 +130,52 @@ def single_project(s: tuple[float, float, float], r0: float, theta_xoy: float, t
     x_s1 = r0 ** 2 * x_s / k_s
     y_s1 = r0 ** 2 * y_s / k_s
     z_s1 = r0 ** 2 * z_s / k_s
+    try:
+        x0 = (x_h ** 2 + y_h ** 2 + z_h ** 2) / x_h
+        x_m = x_h ** 2 * x0 / (x_h ** 2 + y_h ** 2)
+        y_m = x_h * y_h * x0 / (x_h ** 2 + y_h ** 2)
 
-    x0 = (x_h ** 2 + y_h ** 2 + z_h ** 2) / x_h
-    x_m = x_h ** 2 * x0 / (x_h ** 2 + y_h ** 2)
-    y_m = x_h * y_h * x0 / (x_h ** 2 + y_h ** 2)
+        x_d = (z_s1 - x_m * z_h / (x_m - x_h)) * ((x_h - x_m) / z_h)
+        y_d = ((y_m - y_h) / (x_m - x_h)) * x_d + (x_h * y_m - x_m * y_h) / (x_h - x_m)
+        z_d = z_s1
 
-    x_d = (z_s1 - x_m * z_h / (x_m - x_h)) * ((x_h - x_m) / z_h)
-    y_d = ((y_m - y_h) / (x_m - x_h)) * x_d + (x_h * y_m - x_m * y_h) / (x_h - x_m)
-    z_d = z_s1
-
-    x = sqrt((x_s1 - x_d) ** 2 + (y_s1 - y_d) ** 2)
-    y = sqrt((x_h - x_d) ** 2 + (y_h - y_d) ** 2 + (z_h - z_d) ** 2)
+        x = sqrt((x_s1 - x_d) ** 2 + (y_s1 - y_d) ** 2)
+        y = sqrt((x_h - x_d) ** 2 + (y_h - y_d) ** 2 + (z_h - z_d) ** 2)
+    except ZeroDivisionError:
+        x_m = 0
+        y_m = z_h
+        x = sqrt((x_h - x_s1) ** 2 + (y_h - y_s1) ** 2)
+        y = z_s1
 
     s1 = (x_s1, y_s1, z_s1)
     h = (x_h, y_h, z_h)
-    theta_mps1 = cal_cos_angle(s1, (x_m, y_m, 0), h)
-
+    print(x, y)
     if x_h != 0 or y_h != 0:
+        theta_mps1 = cal_cos_angle(s1, (x_m, y_m, 0), h)
         if x_h * y_h > 0:
             theta_gps1 = cal_cos_angle(s1, (x_h / 2, x_h ** 2 / (2 * y_h) + y_h, z_h), h)
+            print(x_h / 2, x_h ** 2 / (2 * y_h) + y_h, z_h, theta_gps1)
         elif x_h * y_h < 0:
             theta_gps1 = cal_cos_angle(s1, (y_h ** 2 / (2 * x_h) + x_h, y_h / 2, z_h), h)
         elif x_h == 0:
             if y_h > 0:
                 theta_gps1 = cal_cos_angle(s1, (-1, y_h, z_h), h)
-            else:  # y_p < 0
+            else:  # y_h < 0
                 theta_gps1 = cal_cos_angle(s1, (1, y_h, z_h), h)
-        else:  # y_p == 0
+        else:  # y_h == 0
             if x_h > 0:
                 theta_gps1 = cal_cos_angle(s1, (x_h, 1, z_h), h)
-            else:  # x_p < 0
+            else:  # x_h < 0
                 theta_gps1 = cal_cos_angle(s1, (x_h, -1, z_h), h)
         if theta_mps1 > 0:
             y = - y
-        if theta_gps1 < 0:
+        if theta_gps1 > 0:
             x = - x
     else:
         if x_s1 < 0:
             x = - x
         if y_s1 < 0:
             y = - y
-
     return round(x, 4), round(y, 4)
 
 

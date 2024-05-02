@@ -19,7 +19,7 @@ for i in range(len(l)):
 for j in range(len(d)):
     del l[d[j] - j]
 
-c = CanvasHandler(k=100)
+c = CanvasHandler(k=50)
 l = [Point(*p) for p in l]
 for p in l:
     c.create_point(p)

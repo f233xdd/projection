@@ -131,8 +131,9 @@ def cal_plane_intersection(pl: Plane, ln: Line) -> tuple[Point] | None:
 
 
 def cal_sight_intersection(ln1: Line, ln2: Line) -> tuple[Point] | None:
-    # noinspection TodoComment
-    pass  # TODO
+    args = []
+    for k1, k2 ,b in ln1._func_arg + ln2._func_arg:
+        args.append((-k2 / k1,  b / k1))
 
 
 def cal_line_func(x1: float, y1: float, z1: float,
