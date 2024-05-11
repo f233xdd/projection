@@ -174,9 +174,7 @@ def cal_plane_intersection(pn: Plane, ln: Line) -> list[Point] | None:
         if r:
             res.append(r)
 
-    res = del_repeated_point(res)
-
-    return res if res else None
+    return del_repeated_point(res) if res else None
 
 
 def cal_line_func(x1: float, y1: float, x2: float, y2: float) -> tuple[float, float, float] | None:
@@ -230,13 +228,12 @@ def is_in_polygon(p: Point, borders: list[Line]):
                 d = cal_d(p, l.endpoint[i])
 
     ln = Line(p, ep)
-    res: list[Point] = []
+    count = 0
     for l in borders:
-        r = cal_line_intersection(ln, l)
-        if r:
-            res.append(r)
+        if cal_line_intersection(ln, l):
+            count += 1
 
-    if len(res) % 2 == 0:
+    if count % 2 == 0:
         return False
     else:
         return True
