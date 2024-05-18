@@ -68,51 +68,8 @@ def multi_project(p: tuple[float, float, float], s: tuple[float, float, float]):
     x_s1 = (k * x_p + (y_p ** 2 + z_p ** 2) * x_s - (y_p * y_s + z_p * z_s) * x_p) / k
     y_s1 = y_p / x_p * x_s1 + y_s - x_s * y_p / x_p
     z_s1 = z_p / x_p * x_s1 + z_s - x_s * z_p / x_p
-
-    try:
-        x0 = (x_p ** 2 + y_p ** 2 + z_p ** 2) / x_p
-        x_m = (x_p ** 2 * x0) / (x_p ** 2 + y_p ** 2)
-        y_m = (x_p * y_p * x0) / (x_p ** 2 + y_p ** 2)
-
-        x_d = (z_s1 - x_m * z_p / (x_m - x_p)) * ((x_p - x_m) / z_p)
-        y_d = ((y_m - y_p) / (x_m - x_p)) * x_d + (x_p * y_m - x_m * y_p) / (x_p - x_m)
-        z_d = z_s1
-
-        x = sqrt((x_s1 - x_d) ** 2 + (y_s1 - y_d) ** 2)
-        y = sqrt((x_p - x_d) ** 2 + (y_p - y_d) ** 2 + (z_p - z_d) ** 2)
-    except ZeroDivisionError:
-        x = sqrt((x_p - x_s1) ** 2 + (y_p - y_s1) ** 2)
-        y = z_s1
-
-    s1 = (x_s1, y_s1, z_s1)
-    theta_mps1 = cal_cos_angle(s1, (x_m, y_m, 0), p)
-    if x_p != 0 or y_p != 0:
-        if x_p * y_p > 0:
-            theta_gps1 = cal_cos_angle(s1, (x_p / 2, x_p ** 2 / (2 * y_p) + y_p, z_p), p)
-        elif x_p * y_p < 0:
-            theta_gps1 = cal_cos_angle(s1, (y_p ** 2 / (2 * x_p) + x_p, y_p / 2, z_p), p)
-        elif x_p == 0:
-            if y_p > 0:
-                theta_gps1 = cal_cos_angle(s1, (-1, y_p, z_p), p)
-            else:  # y_p < 0
-                theta_gps1 = cal_cos_angle(s1, (1, y_p, z_p), p)
-        else:  # y_p == 0
-            if x_p > 0:
-                theta_gps1 = cal_cos_angle(s1, (x_p, 1, z_p), p)
-            else:  # x_p < 0
-                theta_gps1 = cal_cos_angle(s1, (x_p, -1, z_p), p)
-
-        if theta_mps1 > 0:
-            y = - y
-        if theta_gps1 > 0:
-            x = - x
-    else:
-        if x_s1 < 0:
-            x = - x
-        if y_s1 < 0:
-            y = - y
-
-    return x, y
+    
+    # TODO
 
 
 def single_project(s: tuple[float, float, float], r0: float, theta_xoy: float, theta_z: float):
@@ -131,59 +88,45 @@ def single_project(s: tuple[float, float, float], r0: float, theta_xoy: float, t
     y_s1 = r0 ** 2 * y_s / k_s
     z_s1 = r0 ** 2 * z_s / k_s
 
-    try:
-        x0 = (x_h ** 2 + y_h ** 2 + z_h ** 2) / x_h
-        x_m = x_h ** 2 * x0 / (x_h ** 2 + y_h ** 2)
-        y_m = x_h * y_h * x0 / (x_h ** 2 + y_h ** 2)
+    d = sqrt((x_h-x_s1)**2 + (y_h-y_s1)**2 + (z_h-z_s1)**2)
+    if (x_h > 0 and y_h > 0) or (x_h < 0 and y_h < 0):
+        x = d * cal_cos((x_h/2, x_h**2/(2*y_h)+y_h, z_h),
+                        (x_s1, y_s1, z_s1), (x_h, y_h, z_h))
+    elif (x_h > 0 and y_h < 0) or (x_h < 0 and y_h > 0):
+        x = d * cal_cos((y_h**2/(2*x_h)+x_h, y_h/2, z_h),
+                        (x_s1, y_s1, z_s1), (x_h, y_h, z_h))
+    elif y_h == 0 and x_h != 0:
+        if x_h > 0:
+            x = d * cal_cos((x_h, 1, z_h), (x_s1, y_s1, z_s1), (x_h, y_h, z_h))
+        else:  # x_h < 0
+            x = d * cal_cos((x_h, -1, z_h), (x_s1, y_s1, z_s1),
+                            (x_h, y_h, z_h))
+    elif y_h != 0 and x_h == 0:
+        if y_h > 0:
+            x = d * cal_cos((-1, y_h, z_h), (x_s1, y_s1, z_s1),
+                            (x_h, y_h, z_h))
+        else:  # y_h < 0
+            x = d * cal_cos((1, y_h, z_h), (x_s1, y_s1, z_s1), (x_h, y_h, z_h))
+    else:  # x_h == 0 and y_h == 0
+        raise RuntimeError
 
-        x_d = (z_s1 - x_m * z_h / (x_m - x_h)) * ((x_h - x_m) / z_h)
-        y_d = ((y_m - y_h) / (x_m - x_h)) * x_d + (x_h * y_m - x_m * y_h) / (x_h - x_m)
-        z_d = z_s1
-
-        x = sqrt((x_s1 - x_d) ** 2 + (y_s1 - y_d) ** 2)
-        y = sqrt((x_h - x_d) ** 2 + (y_h - y_d) ** 2 + (z_h - z_d) ** 2)
-    except ZeroDivisionError:
-        # print(x0)
-        # x_m = 0
-        # y_m = z_h
-        x = sqrt((x_h - x_s1) ** 2 + (y_h - y_s1) ** 2)
+    if z_h > 0:
+        y = -d * cal_cos((x_h+z_h**2*x_h/(x_h**2+y_h**2), y_h+z_h**2*y_h/(x_h**2+y_h**2), 0), 
+                         (x_s1, y_s1, z_s1), 
+                         (x_h, y_h, z_h))
+    elif z_h < 0:
+        y = d * cal_cos((x_h+z_h**2*x_h/(x_h**2+y_h**2), y_h + z_h**2*y_h/(x_h**2+y_h**2), 0), 
+                        (x_s1, y_s1, z_s1), 
+                        (x_h, y_h, z_h))
+    else:  # z_h == 0
         y = z_s1
 
-    s1 = (x_s1, y_s1, z_s1)
-    h = (x_h, y_h, z_h)
-    if x_h != 0 or y_h != 0:
-        theta_mps1 = cal_cos_angle(s1, (x_m, y_m, 0), h)
-        print((x_m, y_m, 0), theta_mps1)
-        if x_h * y_h > 0:
-            theta_gps1 = cal_cos_angle(s1, (x_h / 2, x_h ** 2 / (2 * y_h) + y_h, z_h), h)
-        elif x_h * y_h < 0:
-            theta_gps1 = cal_cos_angle(s1, (y_h ** 2 / (2 * x_h) + x_h, y_h / 2, z_h), h)
-        elif x_h == 0:
-            if y_h > 0:
-                theta_gps1 = cal_cos_angle(s1, (-1, y_h, z_h), h)
-            else:  # y_h < 0
-                theta_gps1 = cal_cos_angle(s1, (1, y_h, z_h), h)
-        else:  # y_h == 0
-            if x_h > 0:
-                theta_gps1 = cal_cos_angle(s1, (x_h, 1, z_h), h)
-            else:  # x_h < 0
-                theta_gps1 = cal_cos_angle(s1, (x_h, -1, z_h), h)
-        if theta_mps1 > 0:
-            y = - y
-        if theta_gps1 > 0:
-            x = - x
-    else:
-        if x_s1 < 0:
-            x = - x
-        if y_s1 < 0:
-            y = - y
     return x, y
-
-
-def cal_cos_angle(P1: tuple[float, float, float],
+    
+    
+def cal_cos(P1: tuple[float, float, float],
                   P2: tuple[float, float, float],
                   O: tuple[float, float, float]):
-    print(P1, P2, O)
     x1, y1, z1 = P1
     x2, y2, z2 = P2
     x0, y0, z0 = O
@@ -193,7 +136,6 @@ def cal_cos_angle(P1: tuple[float, float, float],
     try:
         return (OP1_2 + OP2_2 - P1P2_2) / (2 * sqrt(OP1_2) * sqrt(OP2_2))
     except ZeroDivisionError:
-        print(OP1_2, OP2_2, P1P2_2)
         return None
 
 
@@ -204,12 +146,12 @@ if __name__ == "__main__":
     print(f"Axis-X: {DS}")
     print(f"Axis-Y: {HD}\n")
 
-    DS, PD = multi_project((5, 5, 3.26), (4.92001, 0.82469, 5.36765))
-    print("Multi point perspective:")
-    print(f"Axis-X: {DS}")
-    print(f"Axis-Y: {PD}\n")
+    # DS, PD = multi_project((5, 5, 3.26), (4.92001, 0.82469, 5.36765))
+    # print("Multi point perspective:")
+    # print(f"Axis-X: {DS}")
+    # print(f"Axis-Y: {PD}\n")
 
-    cos_theta = cal_cos_angle((2, 2, 4), (-20, 6, 47), (0, 0, 0))
+    cos_theta = cal_cos((2, 2, 4), (-20, 6, 47), (0, 0, 0))
     print("cos(<(2, 2, 4), (-20, 6, 47)>)= ", cos_theta)
 
     l1 = ProjectiveLine(Point(0, 0), Point(12, 0))
