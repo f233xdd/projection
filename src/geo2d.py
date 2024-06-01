@@ -1,15 +1,7 @@
 from math import sqrt
 
-ACCURACY = 5
 
-
-def r(x):
-    return round(x, ACCURACY)
-
-
-def approximate(x, y):
-    return True if abs(x - y) <= 10 ** (-ACCURACY + 1) else False
-
+from approx import ApproxFloat
 
 class Base2DGeometricComponent:
     def __init__(self, rgb: str = "#000000") -> None:
@@ -22,8 +14,8 @@ class Base2DGeometricComponent:
 class Point(Base2DGeometricComponent):
     def __init__(self, x: float, y: float, rgb: str = "#000000") -> None:
         super().__init__(rgb)
-        self._x = x
-        self._y = y
+        self._x = ApproxFloat(x)
+        self._y = ApproxFloat(y)
 
     def __repr__(self) -> str:
         return str(self.pos)
@@ -48,8 +40,8 @@ class Point(Base2DGeometricComponent):
 
     def __is_on_line(self, ln: "Line") -> bool:
         k1, k2, b = ln.func_arg
-        ep = ln.endpoint
-        if approximate(k1 * self.y + k2 * self.x, b):
+        ep = ln.ep
+        if k1 * self.y + k2 * self.x == b:
             if ep[0].x <= self.x <= ep[1].x and (ep[0].y - self.y) * (ep[1].y - self.y) <= 0:
                 return True
         return False
@@ -77,7 +69,7 @@ class Line(Base2DGeometricComponent):
     #     self.update_func()
 
     def update_func(self):
-        self._func_arg = cal_line_func(*self.endpoint[0].pos, *self.endpoint[1].pos)
+        self._func_arg = cal_line_func(*self.ep[0].pos, *self.ep[1].pos)
 
     def is_parallel(self, ln: "Line") -> bool:
         return is_parallel(self, ln)
@@ -86,7 +78,7 @@ class Line(Base2DGeometricComponent):
         return is_superposition(self, ln)
 
     def __str__(self) -> str:
-        ed1, ed2 = self.endpoint
+        ed1, ed2 = self.ep
         k1, k2, b = self.func_arg
         if self.func_arg[0] != 0:
             return "{(x, y)|" + f"{k1}*y+{k2}*x={b}, {ed1.x}<=x<={ed2.x}" + "}"
@@ -103,7 +95,7 @@ class Line(Base2DGeometricComponent):
         return self._status
 
     @property
-    def endpoint(self) -> tuple[Point, Point]:
+    def ep(self) -> tuple[Point, Point]:
         if self._endpoint[0].x < self._endpoint[1].x:
             return self._endpoint[0], self._endpoint[1]
         elif self._endpoint[0].x > self._endpoint[1].x:
@@ -116,7 +108,6 @@ class Line(Base2DGeometricComponent):
 
     @property
     def func_arg(self) -> tuple[float, float, float]:
-        self.update_func()
         return self._func_arg
 
 
@@ -196,7 +187,7 @@ def is_superposition(ln1: Line, ln2: Line) -> bool:
     if ln1.is_parallel(ln2):
         if k11 != 0:
             if b1 / k11 == b2 / k21:
-                if ln1.endpoint[0].x > ln2.endpoint[1].x or ln1.endpoint[1].x < ln2.endpoint[0].x:
+                if ln1.ep[0].x > ln2.ep[1].x or ln1.ep[1].x < ln2.ep[0].x:
                     return False
                 else:
                     return True
@@ -204,7 +195,7 @@ def is_superposition(ln1: Line, ln2: Line) -> bool:
                 return False
         else:  # ln1.func_arg[1] != 0
             if b1 / k12 == b2 / k22:
-                if ln1.endpoint[0].x > ln2.endpoint[1].x or ln1.endpoint[1].x < ln2.endpoint[0].x:
+                if ln1.ep[0].x > ln2.ep[1].x or ln1.ep[1].x < ln2.ep[0].x:
                     return False
                 else:
                     return True
@@ -223,16 +214,20 @@ def is_in_polygon(p: Point, borders: list[Line]):
     ep = None
     for l in borders:
         for i in range(2):
-            if d < cal_d(p, l.endpoint[i]):
-                ep = l.endpoint[i]
-                d = cal_d(p, l.endpoint[i])
+            if d < cal_d(p, l.ep[i]):
+                ep = l.ep[i]
+                d = cal_d(p, l.ep[i])
 
     ln = Line(p, ep)
+    print(ln)
     count = 0
     for l in borders:
-        if cal_line_intersection(ln, l):
+        r = cal_line_intersection(ln, l)
+        if r:
+            print(r)
+            input("> ")
             count += 1
-
+    print(count)
     if count % 2 == 0:
         return False
     else:
@@ -254,13 +249,13 @@ def del_repeated_point(points: list[Point]) -> list[Point]:
 
 if __name__ == "__main__":
     print("===============Test Case===============")
-    pn = Plane(Point(0, 0), Point(1, 2), Point(2, 1))
-    print(pn.border_func_args)
-    assert Point(1, 1).is_on(pn) is True
-    ln = Line(Point(1, 1), Point(0, 3))
-    ln2 = Line(Point(10, 10), Point(0, 30))
-    print(cal_plane_intersection(pn, ln).pop().pos)  # (0.75, 1.5)
-    assert ln.is_parallel(ln2) is True
+    # pn = Plane(Point(0, 0), Point(1, 2), Point(2, 1))
+    # print(pn.border_func_args)
+    # assert Point(1, 1).is_on(pn) is True
+    # ln = Line(Point(1, 1), Point(0, 3))
+    # ln2 = Line(Point(10, 10), Point(0, 30))
+    # print(cal_plane_intersection(pn, ln).pop().pos)  # (0.75, 1.5)
+    # assert ln.is_parallel(ln2) is True
     p = [Point(-1.3873, 3.86814),
          Point(-1.20899, 0.80864),
          Point(0.17469, 1.97528),
@@ -282,5 +277,5 @@ if __name__ == "__main__":
         l.append(Line(p[i], p[i + 1]))
     l.append(Line(p[0], p[-1]))
 
-    p1 = Point(-5.77109, -2.78984)
+    p1 = Point(-1.2133, -1.02017)
     print(is_in_polygon(p1, l))

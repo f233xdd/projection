@@ -24,11 +24,11 @@ class CanvasHandler:
 
     def create_line(self, ln: Line, enable_k: bool = True) -> None:
         if ln.status == 1:
-            self._canvas.create_line(*self.__transform(ln.endpoint[0].pos, enable_k),
-                                     *self.__transform(ln.endpoint[1].pos, enable_k))
+            self._canvas.create_line(*self.__transform(ln.ep[0].pos, enable_k),
+                                     *self.__transform(ln.ep[1].pos, enable_k))
         else:
-            self._canvas.create_line(*self.__transform(ln.endpoint[0].pos, enable_k),
-                                     *self.__transform(ln.endpoint[1].pos, enable_k), dash=(2, 4))
+            self._canvas.create_line(*self.__transform(ln.ep[0].pos, enable_k),
+                                     *self.__transform(ln.ep[1].pos, enable_k), dash=(2, 4))
 
     # noinspection TodoComment
     def create_plane(self, pn: Plane, enable_k: bool = True) -> None:

@@ -1,7 +1,8 @@
-from project import single_project
+from approx import ApproxFloat as af
 
+s1 = (af(12), af(0))
+s2 = (af(0), af(0))
 
-s = [(3, 3, 3), (3, 4, 3), (4, 3, 3), (4, 4, 3),
-     (3, 3, 4), (3, 4, 4), (4, 3, 4), (4, 4, 4)]
-l = [single_project(s1, 3, 45, 0) for s1 in s]
-print(l)
+f1 = af(1.000001)
+f2 = af(1.00001)
+af(12) != af(0)

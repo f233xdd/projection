@@ -28,24 +28,24 @@ class ProjectiveLine(Line):
         i = len(self.parts)
         while True:
             ln0 = self.parts.pop(0)
-            if getattr(ln0.endpoint[0], v) <= getattr(ln.endpoint[0], v) <= getattr(ln0.endpoint[1], v):
-                if ln0.status == 0 or getattr(ln.endpoint[0], v) == getattr(self.endpoint[0], v):
-                    ep = ln0.endpoint[0]
+            if getattr(ln0.ep[0], v) <= getattr(ln.ep[0], v) <= getattr(ln0.ep[1], v):
+                if ln0.status == 0 or getattr(ln.ep[0], v) == getattr(self.ep[0], v):
+                    ep = ln0.ep[0]
                 else:
-                    self.parts.append(Line(ln0.endpoint[0], ln.endpoint[0], 1))
-                    ep = ln.endpoint[0]
+                    self.parts.append(Line(ln0.ep[0], ln.ep[0], 1))
+                    ep = ln.ep[0]
                 i += -1
                 break
             self.parts.append(ln0)
             i += -1
 
         while True:
-            if getattr(ln0.endpoint[1], v) >= getattr(ln.endpoint[1], v):
-                if ln0.status == 0 or getattr(ln.endpoint[1], v) == getattr(self.endpoint[1], v):
-                    self.parts.append(Line(ep, ln0.endpoint[1], 0))
+            if getattr(ln0.ep[1], v) >= getattr(ln.ep[1], v):
+                if ln0.status == 0 or getattr(ln.ep[1], v) == getattr(self.ep[1], v):
+                    self.parts.append(Line(ep, ln0.ep[1], 0))
                 else:
-                    self.parts.append(Line(ep, ln.endpoint[1], 0))
-                    self.parts.append(Line(ln.endpoint[1], ln0.endpoint[1], 1))
+                    self.parts.append(Line(ep, ln.ep[1], 0))
+                    self.parts.append(Line(ln.ep[1], ln0.ep[1], 1))
                 break
             ln0 = self.parts.pop(0)
             i += -1
@@ -108,7 +108,7 @@ def single_project(s: tuple[float, float, float], r0: float, theta_xoy: float, t
         else:  # y_h < 0
             x = d * cal_cos((1, y_h, z_h), (x_s1, y_s1, z_s1), (x_h, y_h, z_h))
     else:  # x_h == 0 and y_h == 0
-        raise RuntimeError
+        raise RuntimeError("We don't support this situation right now...")
 
     if z_h > 0:
         y = -d * cal_cos((x_h+z_h**2*x_h/(x_h**2+y_h**2), y_h+z_h**2*y_h/(x_h**2+y_h**2), 0), 
