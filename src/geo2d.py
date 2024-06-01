@@ -3,7 +3,7 @@ from math import sqrt
 
 from approx import ApproxFloat
 
-class Base2DGeometricComponent:
+class BaseGeo2DComponent:
     def __init__(self, rgb: str = "#000000") -> None:
         self._rgb: str = rgb
 
@@ -11,7 +11,7 @@ class Base2DGeometricComponent:
     def rgb(self): return self._rgb
 
 
-class Point(Base2DGeometricComponent):
+class Point(BaseGeo2DComponent):
     def __init__(self, x: float, y: float, rgb: str = "#000000") -> None:
         super().__init__(rgb)
         self._x = ApproxFloat(x)
@@ -54,12 +54,12 @@ class Point(Base2DGeometricComponent):
         return True
 
 
-class Line(Base2DGeometricComponent):
+class Line(BaseGeo2DComponent):
     def __init__(self, p1: Point, p2: Point, status: int = 1, rgb: str = "#000000") -> None:
         assert p1.pos != p2.pos
         super().__init__(rgb)
         self._status = status
-        self._endpoint = [p1, p2]
+        self._ep = [p1, p2]
         self._func_arg = None
         self.update_func()
         # (x2-x1)y+(y1-y2)x=x2*y1-x1*y2
@@ -87,8 +87,7 @@ class Line(Base2DGeometricComponent):
 
     @property
     def length(self) -> float:
-        return sqrt((self._endpoint[0].x - self._endpoint[1].x) ** 2 +
-                    (self._endpoint[0].y - self._endpoint[1].y) ** 2)
+        return cal_d(self._ep[0], self._ep[1])
 
     @property
     def status(self) -> int:
@@ -96,22 +95,22 @@ class Line(Base2DGeometricComponent):
 
     @property
     def ep(self) -> tuple[Point, Point]:
-        if self._endpoint[0].x < self._endpoint[1].x:
-            return self._endpoint[0], self._endpoint[1]
-        elif self._endpoint[0].x > self._endpoint[1].x:
-            return self._endpoint[1], self._endpoint[0]
+        if self._ep[0].x < self._ep[1].x:
+            return self._ep[0], self._ep[1]
+        elif self._ep[0].x > self._ep[1].x:
+            return self._ep[1], self._ep[0]
         else:
-            if self._endpoint[0].y <= self._endpoint[1].y:
-                return self._endpoint[0], self._endpoint[1]
+            if self._ep[0].y <= self._ep[1].y:
+                return self._ep[0], self._ep[1]
             else:
-                return self._endpoint[1], self._endpoint[0]
+                return self._ep[1], self._ep[0]
 
     @property
     def func_arg(self) -> tuple[float, float, float]:
         return self._func_arg
 
 
-class Plane(Base2DGeometricComponent):
+class Plane(BaseGeo2DComponent):
     def __init__(self, p1: Point, p2: Point, p3: Point, rgb: str = "#000000") -> None:
         assert p1.pos != p2.pos and p1.pos != p3.pos and p2.pos != p3.pos
         super().__init__(rgb)
@@ -141,6 +140,20 @@ class Plane(Base2DGeometricComponent):
     @property
     def border_lines(self) -> tuple[Line, Line, Line]:
         return self._border_line[0][0], self._border_line[1][0], self._border_line[2][0]
+
+
+class Polyline(BaseGeo2DComponent):
+    def __init__(self, base: Line, rgb: str = "#000000") -> None:
+        super().__init__(rgb)
+    
+    def connect(self, ln):
+        pass
+    
+    def ep(self) -> list[Point]:
+        pass
+    
+    def is_plygon(self) -> bool:
+        pass
 
 
 def cal_d(p1: Point, p2: Point) -> float:

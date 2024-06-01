@@ -15,7 +15,7 @@ class ProjectivePoint(Point):
 class ProjectiveLine(Line):
     def __init__(self, p1: Point, p2: Point, status=1, rgb: str = "#000000") -> None:
         super().__init__(p1, p2, status, rgb)
-        self.parts = [Line(self._endpoint[0], self._endpoint[1], 1, rgb=rgb)]
+        self.parts = [Line(self._ep[0], self._ep[1], 1, rgb=rgb)]
 
     def combine(self, ln: Line) -> None:
         if not self.is_superposition(ln) or not ln.status == 0:

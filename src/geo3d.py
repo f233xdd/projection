@@ -4,7 +4,7 @@ import geo2d
 from approx import ApproxFloat
 
 
-class Base3DGeometricComponent:
+class BaseGeo3DComponent:
     def __init__(self, rgb: str = "#000000") -> None:
         self._rgb = rgb
         self._func_arg = None
@@ -13,7 +13,7 @@ class Base3DGeometricComponent:
     def rgb(self): return self._rgb
 
 
-class Point(Base3DGeometricComponent):
+class Point(BaseGeo3DComponent):
     def __init__(self, x, y, z, rgb: str = "#000000") -> None:
         super().__init__(rgb)
         self._x = ApproxFloat(x)
@@ -60,15 +60,15 @@ class Point(Base3DGeometricComponent):
         pass  # TODO
 
 
-class Line(Base3DGeometricComponent):
+class Line(BaseGeo3DComponent):
     def __init__(self, p1: Point, p2: Point, status=1, rgb: str = "#000000") -> None:
         assert p1.pos != p2.pos
         super().__init__(rgb)
         self._status = status
         if p1.x <= p2.x:
-            self._endpoint = (p1, p2)
+            self._ep = (p1, p2)
         else:
-            self._endpoint = (p2, p1)
+            self._ep = (p2, p1)
 
         self._func_arg = (geo2d.cal_line_func(p1.x, p1.y, p2.x, p2.y),
                           geo2d.cal_line_func(p1.x, p1.z, p2.x, p2.z))
@@ -76,7 +76,7 @@ class Line(Base3DGeometricComponent):
         # | (x2-x1)x+(z1-z2)z=x2*z1-x1*z2
     
     def func_arg(self) -> tuple[tuple[float, float, float] | None, tuple[float, float, float]] | None:
-            return self._func_arg
+            return self._func_arg, self
 
     def is_on(self, pn: "Plane") -> bool:
         # noinspection TodoComment
@@ -92,28 +92,27 @@ class Line(Base3DGeometricComponent):
 
     @property
     def ep(self):
-        if self._endpoint[0].x < self._endpoint[1].x:
-            return self._endpoint[0], self._endpoint[1]
-        elif self._endpoint[0].x > self._endpoint[1].x:
-            return self._endpoint[1], self._endpoint[0]
+        if self._ep[0].x < self._ep[1].x:
+            return self._ep[0], self._ep[1]
+        elif self._ep[0].x > self._ep[1].x:
+            return self._ep[1], self._ep[0]
         else:
-            if self._endpoint[0].y < self._endpoint[1].y:
-                return self._endpoint[0], self._endpoint[1]
-            elif self._endpoint[0].y > self._endpoint[1].y:
-                return self._endpoint[1], self._endpoint[0]
+            if self._ep[0].y < self._ep[1].y:
+                return self._ep[0], self._ep[1]
+            elif self._ep[0].y > self._ep[1].y:
+                return self._ep[1], self._ep[0]
             else:
-                if self._endpoint[0].z <= self._endpoint[1].z:
-                    return self._endpoint[0], self._endpoint[1]
+                if self._ep[0].z <= self._ep[1].z:
+                    return self._ep[0], self._ep[1]
                 else:
-                    return self._endpoint[1], self._endpoint[0]
+                    return self._ep[1], self._ep[0]
 
     @property
     def length(self) -> float:
-        # noinspection TodoComment
-        return sqrt()
+        return cal_d(self._ep[0], self._ep[1])
 
 
-class Plane(Base3DGeometricComponent):
+class Plane(BaseGeo3DComponent):
     def __init__(self, p1: Point, p2: Point, p3: Point, rgb: str = "#000000") -> None:
         assert p1.pos != p2.pos and p1.pos != p3.pos
         super().__init__(rgb)
@@ -143,13 +142,14 @@ def cal_line_intersection(ln1: Line, ln2: Line) -> Point | None:
 
 def cal_plane_intersection(pl: Plane, ln: Line) -> tuple[Point] | None:
     # noinspection TodoComment
-    pass
+    pass  # TODO
 
 
 def cal_sight_intersection(ln1: Line, ln2: Line) -> tuple[Point] | None:
     args = []
     for k1, k2 ,b in ln1._func_arg + ln2._func_arg:
         args.append((-k2 / k1,  b / k1))
+        # TODO
 
 
 def cal_line_func(x1: float, y1: float, z1: float,
