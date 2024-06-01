@@ -1,3 +1,4 @@
+from collections import deque
 from math import sqrt
 
 
@@ -145,19 +146,45 @@ class Plane(BaseGeo2DComponent):
 class Polyline(BaseGeo2DComponent):
     def __init__(self, base: Line, rgb: str = "#000000") -> None:
         super().__init__(rgb)
-    
-    def connect(self, ln):
-        pass
-    
-    def ep(self) -> list[Point]:
-        pass
-    
-    def is_plygon(self) -> bool:
-        pass
+        self._lines = deque()
+        self._ep = deque()
 
+        self._lines.append(base)
+        for p in base.ep:
+            self._ep.append(p) 
+
+    def connect(self, ln: Line):
+        if self._ep[0] == ln.ep[0]:
+            self._lines.appendleft(ln)
+            self._ep.appendleft(ln.ep[1])
+        elif self._ep[0] == ln.ep[1]:
+            self._lines.appendleft(ln)
+            self._ep.appendleft(ln.ep[0])
+        elif self._ep[-1] == ln.ep[0]:
+            self._lines.append(ln)
+            self._ep.append(ln.ep[1])
+        elif self._ep[-1] == ln.ep[1]:
+            self._lines.append(ln)
+            self._ep.append(ln.ep[0])
+        else:
+            raise ValueError
+    
+    def is_polygon(self) -> bool:
+        return True if self._ep[0] == self._ep[-1] else False
+
+    @property
+    def ep(self) -> deque[Point]:
+        return self._ep
+
+    @property
+    def line(self) -> deque[Line]:
+        return self._lines
 
 def cal_d(p1: Point, p2: Point) -> float:
     return sqrt((p1.x - p2.x) ** 2 + (p1.y - p2.y) ** 2)
+
+def cal_mid_point(p1: Point, p2: Point) -> Point:
+    return Point((p1.x + p2.x)/2, (p1.y + p2.y)/2)
 
 
 def cal_line_intersection(ln1: Line, ln2: Line) -> Point | None:
@@ -218,29 +245,53 @@ def is_superposition(ln1: Line, ln2: Line) -> bool:
         return False
 
 
-def is_in_polygon(p: Point, borders: list[Line]):
-    for l in borders:
+def is_in_polygon(p: Point, pln: Polyline):
+    assert pln.is_polygon()
+
+    for l in pln.line:
         if p.is_on(l):
             return True
 
     d = 0
-    ep = None
-    for l in borders:
-        for i in range(2):
-            if d < cal_d(p, l.ep[i]):
-                ep = l.ep[i]
-                d = cal_d(p, l.ep[i])
+    i = 0
+    while i != len(pln.ep):
+        if cal_d(pln.ep[i], p) > d:
+            ep1 = pln.ep[i]
+            try:
+                if cal_d(pln.ep[i-1], p) >= cal_d(pln.ep[i+1], p):
+                    ep = cal_mid_point(ep1, pln.ep[i-1])
+                else:
+                    ep = cal_mid_point(ep1, pln.ep[i+1])
+                break
+            except IndexError:
+                if cal_d(pln.ep[i-1], p) >= cal_d(pln.ep[-1], p):
+                    ep = cal_mid_point(ep1, pln.ep[i-1])
+                else:
+                    ep = cal_mid_point(ep1, pln.ep[-1])
+                break
+                
 
     ln = Line(p, ep)
-    print(ln)
     count = 0
-    for l in borders:
+    repeat = 0
+    d = None
+    for l in pln.line:
         r = cal_line_intersection(ln, l)
         if r:
             print(r)
-            input("> ")
+            tmp = cal_d(r, p)
+            if d:
+                if tmp < d:
+                    d = tmp
+                    repeat = 1
+                elif tmp == d:
+                    repeat += 1
+            else:
+                d = tmp
             count += 1
-    print(count)
+    if repeat == 2:
+        count += -1
+
     if count % 2 == 0:
         return False
     else:
@@ -285,10 +336,11 @@ if __name__ == "__main__":
          Point(-5.59326, -3.58546)
          ]
 
-    l = []
+    p2 = p.pop(0)
+    polyline = Polyline(base=Line(p2, p[0]))
     for i in range(len(p) - 1):
-        l.append(Line(p[i], p[i + 1]))
-    l.append(Line(p[0], p[-1]))
+        polyline.connect(Line(p[i], p[i + 1]))
+    polyline.connect(Line(p2, p[-1]))
 
-    p1 = Point(-1.2133, -1.02017)
-    print(is_in_polygon(p1, l))
+    p1 = Point(-0.73633, -2.32572)
+    print(is_in_polygon(p1, polyline))

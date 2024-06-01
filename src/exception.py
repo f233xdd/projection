@@ -22,9 +22,6 @@ class UncertainGeometryError(Exception):
 	pass
 
 
-
-
-
 class DimensionError(Exception):
 	pass
 
