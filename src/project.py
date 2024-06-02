@@ -1,6 +1,6 @@
 from math import sin, cos, sqrt, radians
 
-from geo2d import Point, Line, Plane
+from geo2d import Point, Line, Plane, cal_rotated_point
 
 
 class ProjectivePoint(Point):
@@ -108,8 +108,11 @@ def single_project(s: tuple[float, float, float], r0: float, theta_xoy: float, t
         else:  # y_h < 0
             x = d * cal_cos((1, y_h, z_h), (x_s1, y_s1, z_s1), (x_h, y_h, z_h))
     else:  # x_h == 0 and y_h == 0
-        raise RuntimeError("We don't support this situation right now...")
-
+        p = Point(x_h, y_h)
+        if z_h > 0:
+            return cal_rotated_point(p, -theta_xoy-90).pos
+        else:  # z_h > 0
+            return cal_rotated_point(p, -theta_xoy+90).pos
     if z_h > 0:
         y = -d * cal_cos((x_h+z_h**2*x_h/(x_h**2+y_h**2), y_h+z_h**2*y_h/(x_h**2+y_h**2), 0), 
                          (x_s1, y_s1, z_s1), 

@@ -1,5 +1,5 @@
 from collections import deque
-from math import sqrt
+from math import sqrt, sin, cos, radians
 
 
 from approx import ApproxFloat
@@ -215,6 +215,11 @@ def cal_line_func(x1: float, y1: float, x2: float, y2: float) -> tuple[float, fl
     :return k1, k2, b
     """
     return x2 - x1, y1 - y2, x2 * y1 - x1 * y2 if x2 != x1 or y2 != y1 else None
+
+
+def cal_rotated_point(p: Point, theta: float) -> Point:
+    theta = radians(theta)
+    return (p.x * cos(theta) - p.y * sin(theta), p.x * sin(theta) + p.y * cos(theta))
 
 
 def is_parallel(ln1: Line, ln2: Line) -> bool:
