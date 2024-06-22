@@ -1,6 +1,7 @@
 from math import sin, cos, sqrt, radians
 
-from geo2d import Point, Line, Plane, cal_rotated_point
+from geo2d import Point, Line, Plane, rotate
+from approx import ApproxFloat
 
 
 class ProjectivePoint(Point):
@@ -60,16 +61,16 @@ class ProjectivePlane(Plane):
         self.inner = []  # TODO
 
 
-def multi_project(p: tuple[float, float, float], s: tuple[float, float, float]):
-    x_p, y_p, z_p = p
-    x_s, y_s, z_s = s
+# def multi_project(p: tuple[float, float, float], s: tuple[float, float, float]):
+#     x_p, y_p, z_p = p
+#     x_s, y_s, z_s = s
 
-    k = x_p ** 2 + y_p ** 2 + z_p ** 2
-    x_s1 = (k * x_p + (y_p ** 2 + z_p ** 2) * x_s - (y_p * y_s + z_p * z_s) * x_p) / k
-    y_s1 = y_p / x_p * x_s1 + y_s - x_s * y_p / x_p
-    z_s1 = z_p / x_p * x_s1 + z_s - x_s * z_p / x_p
+#     k = x_p ** 2 + y_p ** 2 + z_p ** 2
+#     x_s1 = (k * x_p + (y_p ** 2 + z_p ** 2) * x_s - (y_p * y_s + z_p * z_s) * x_p) / k
+#     y_s1 = y_p / x_p * x_s1 + y_s - x_s * y_p / x_p
+#     z_s1 = z_p / x_p * x_s1 + z_s - x_s * z_p / x_p
     
-    # TODO
+#     # TODO
 
 
 def single_project(s: tuple[float, float, float], r0: float, theta_xoy: float, theta_z: float):
@@ -77,50 +78,53 @@ def single_project(s: tuple[float, float, float], r0: float, theta_xoy: float, t
     theta_z = radians(theta_z)
     x_s, y_s, z_s = s
 
-    x_h = r0 * cos(theta_z) * cos(theta_xoy)
-    y_h = r0 * cos(theta_z) * sin(theta_xoy)
-    z_h = r0 * sin(theta_z)
+    x_p = ApproxFloat(r0 * cos(theta_z) * cos(theta_xoy))
+    y_p = ApproxFloat(r0 * cos(theta_z) * sin(theta_xoy))
+    z_p = ApproxFloat(r0 * sin(theta_z))
 
-    k_s = x_h * x_s + y_h * y_s + z_h * z_s
+    k_s = x_p * x_s + y_p * y_s + z_p * z_s
     if k_s == 0:
         return None
     x_s1 = r0 ** 2 * x_s / k_s
     y_s1 = r0 ** 2 * y_s / k_s
     z_s1 = r0 ** 2 * z_s / k_s
 
-    d = sqrt((x_h-x_s1)**2 + (y_h-y_s1)**2 + (z_h-z_s1)**2)
-    if (x_h > 0 and y_h > 0) or (x_h < 0 and y_h < 0):
-        x = d * cal_cos((x_h/2, x_h**2/(2*y_h)+y_h, z_h),
-                        (x_s1, y_s1, z_s1), (x_h, y_h, z_h))
-    elif (x_h > 0 and y_h < 0) or (x_h < 0 and y_h > 0):
-        x = d * cal_cos((y_h**2/(2*x_h)+x_h, y_h/2, z_h),
-                        (x_s1, y_s1, z_s1), (x_h, y_h, z_h))
-    elif y_h == 0 and x_h != 0:
-        if x_h > 0:
-            x = d * cal_cos((x_h, 1, z_h), (x_s1, y_s1, z_s1), (x_h, y_h, z_h))
+    d = sqrt((x_p-x_s1)**2 + (y_p-y_s1)**2 + (z_p-z_s1)**2)
+    if x_p != 0 and y_p != 0:
+        if (x_p > 0 and y_p > 0) or (x_p < 0 and y_p < 0):
+            x = d * cal_cos((x_p/2, x_p**2/(2*y_p)+y_p, z_p),
+                            (x_s1, y_s1, z_s1), (x_p, y_p, z_p))
+        elif (x_p > 0 and y_p < 0) or (x_p < 0 and y_p > 0):
+            x = d * cal_cos((y_p**2/(2*x_p)+x_p, y_p/2, z_p),
+                            (x_s1, y_s1, z_s1), (x_p, y_p, z_p))
+    elif y_p == 0 and x_p != 0:
+        if x_p > 0:
+            x = d * cal_cos((x_p, 1, z_p), (x_s1, y_s1, z_s1), (x_p, y_p, z_p))
         else:  # x_h < 0
-            x = d * cal_cos((x_h, -1, z_h), (x_s1, y_s1, z_s1),
-                            (x_h, y_h, z_h))
-    elif y_h != 0 and x_h == 0:
-        if y_h > 0:
-            x = d * cal_cos((-1, y_h, z_h), (x_s1, y_s1, z_s1),
-                            (x_h, y_h, z_h))
+            x = d * cal_cos((x_p, -1, z_p), (x_s1, y_s1, z_s1),
+                            (x_p, y_p, z_p))
+    elif y_p != 0 and x_p == 0:
+        if y_p > 0:
+            x = d * cal_cos((-1, y_p, z_p), (x_s1, y_s1, z_s1),
+                            (x_p, y_p, z_p))
         else:  # y_h < 0
-            x = d * cal_cos((1, y_h, z_h), (x_s1, y_s1, z_s1), (x_h, y_h, z_h))
+            x = d * cal_cos((1, y_p, z_p), (x_s1, y_s1, z_s1), (x_p, y_p, z_p))
     else:  # x_h == 0 and y_h == 0
-        p = Point(x_h, y_h)
-        if z_h > 0:
-            return cal_rotated_point(p, -theta_xoy-90).pos
+        p = Point(x_s1, y_s1)
+        if z_p > 0:
+            p = rotate(p, radians(180)-theta_xoy)
+            return p.y, p.x
         else:  # z_h > 0
-            return cal_rotated_point(p, -theta_xoy+90).pos
-    if z_h > 0:
-        y = -d * cal_cos((x_h+z_h**2*x_h/(x_h**2+y_h**2), y_h+z_h**2*y_h/(x_h**2+y_h**2), 0), 
+            p = rotate(p, radians(90)-theta_xoy)
+            return p.pos
+    if z_p > 0:
+        y = -d * cal_cos((x_p+z_p**2*x_p/(x_p**2+y_p**2), y_p+z_p**2*y_p/(x_p**2+y_p**2), 0), 
                          (x_s1, y_s1, z_s1), 
-                         (x_h, y_h, z_h))
-    elif z_h < 0:
-        y = d * cal_cos((x_h+z_h**2*x_h/(x_h**2+y_h**2), y_h + z_h**2*y_h/(x_h**2+y_h**2), 0), 
+                         (x_p, y_p, z_p))
+    elif z_p < 0:
+        y = d * cal_cos((x_p+z_p**2*x_p/(x_p**2+y_p**2), y_p + z_p**2*y_p/(x_p**2+y_p**2), 0), 
                         (x_s1, y_s1, z_s1), 
-                        (x_h, y_h, z_h))
+                        (x_p, y_p, z_p))
     else:  # z_h == 0
         y = z_s1
 
