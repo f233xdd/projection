@@ -76,7 +76,7 @@ class Line(BaseGeo3DComponent):
         # | (x2-x1)x+(z1-z2)z=x2*z1-x1*z2
     
     def func_arg(self) -> tuple[tuple[float, float, float] | None, tuple[float, float, float]] | None:
-            return self._func_arg, self
+            return self._func_arg
 
     def is_on(self, pn: "Plane") -> bool:
         # noinspection TodoComment

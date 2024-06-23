@@ -1,6 +1,4 @@
 import project
-import tkinter as tk
-from tkinter import ttk
 
 from render import CanvasHandler
 from geo2d import Point

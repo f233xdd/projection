@@ -282,7 +282,6 @@ def is_in_polygon(p: Point, pln: Polyline):
     for l in pln.line:
         r = cal_line_intersection(ln, l)
         if r:
-            print(r)
             tmp = cal_d(r, p)
             if d:
                 if tmp < d:

@@ -9,7 +9,7 @@ class CanvasHandler:
         self._root = tk.Tk()
         if size is None:
             self._size = (800, 500)  # default size
-        self._k = k
+        self._k = k  # normally, k >= 1
         self._canvas = tk.Canvas(self._root, bg='white',
                                  width=self._size[0], height=self._size[1])
         self._canvas.grid(column=0, row=0, sticky=tk.NSEW)
@@ -30,7 +30,6 @@ class CanvasHandler:
             self._canvas.create_line(*self.__transform(ln.ep[0].pos, enable_k),
                                      *self.__transform(ln.ep[1].pos, enable_k), dash=(2, 4))
 
-    # noinspection TodoComment
     def create_plane(self, pn: Plane, enable_k: bool = True) -> None:
         pass  # TODO
 

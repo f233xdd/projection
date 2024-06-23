@@ -78,7 +78,7 @@ def single_project(s: tuple[float, float, float], r0: float, theta_xoy: float, t
     theta_z = radians(theta_z)
     x_s, y_s, z_s = s
 
-    x_p = ApproxFloat(r0 * cos(theta_z) * cos(theta_xoy))
+    x_p = ApproxFloat(r0 * cos(theta_z) * cos(theta_xoy))  # TODO: delete this in the future
     y_p = ApproxFloat(r0 * cos(theta_z) * sin(theta_xoy))
     z_p = ApproxFloat(r0 * sin(theta_z))
 
@@ -107,14 +107,14 @@ def single_project(s: tuple[float, float, float], r0: float, theta_xoy: float, t
         if y_p > 0:
             x = d * cal_cos((-1, y_p, z_p), (x_s1, y_s1, z_s1),
                             (x_p, y_p, z_p))
-        else:  # y_h < 0
+        else:  # y_p < 0
             x = d * cal_cos((1, y_p, z_p), (x_s1, y_s1, z_s1), (x_p, y_p, z_p))
-    else:  # x_h == 0 and y_h == 0
+    else:  # x_p == 0 and y_p == 0
         p = Point(x_s1, y_s1)
         if z_p > 0:
             p = rotate(p, radians(180)-theta_xoy)
             return p.y, p.x
-        else:  # z_h > 0
+        else:  # z_p > 0
             p = rotate(p, radians(90)-theta_xoy)
             return p.pos
     if z_p > 0:
@@ -125,7 +125,7 @@ def single_project(s: tuple[float, float, float], r0: float, theta_xoy: float, t
         y = d * cal_cos((x_p+z_p**2*x_p/(x_p**2+y_p**2), y_p + z_p**2*y_p/(x_p**2+y_p**2), 0), 
                         (x_s1, y_s1, z_s1), 
                         (x_p, y_p, z_p))
-    else:  # z_h == 0
+    else:  # z_p == 0
         y = z_s1
 
     return x, y
