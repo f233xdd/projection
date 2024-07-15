@@ -1,7 +1,7 @@
-mod craphcalc;
+mod graphcalc;
 
-use craphcalc::geo2d;
-use craphcalc::geo3d;
+use graphcalc::geo2d;
+use graphcalc::geo3d;
 
 fn main()
 {

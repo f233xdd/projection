@@ -1,8 +1,10 @@
 // 3D part
 use super::{component::*, SpaceVector};
 
-/// | k11 * y + k12 * x = b1
-/// | k21 * z + k22 * x = b2
+/// function sample:
+/// 
+///     | k11 * y + k12 * x = b1
+///     | k21 * z + k22 * x = b2
 pub fn calc_line_func(p1: &Point, p2: &Point) -> Result<[[f64; 3]; 2], ()> {
     if (p2.x != p1.x) || (p2.y != p1.y) || (p2.z != p1.z) {
         return Ok([[p2.x - p1.x, p1.y - p2.y, p2.x * p1.y - p1.x * p2.y], 

@@ -16,6 +16,7 @@ impl Point {
 }
 
 /// function sample:
+/// 
 ///     | k11 * y + k12 * x = b1
 ///     | k21 * z + k22 * x = b2
 pub struct Line {
@@ -67,6 +68,7 @@ impl Line {
 
 
 /// function sample:
+/// 
 ///     k1 * x + k2 * y + k3 * z = b
 pub struct Plane {
     func_args: [f64; 4]
