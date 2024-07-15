@@ -1,7 +1,7 @@
 from time import perf_counter
 
 
-class Ticker:
+class Timer:
     def __init__(self, e: int = 3) -> None:
         self._t1 = 0
         self._t2 = 0
@@ -58,7 +58,7 @@ class Ticker:
 if __name__ == "__main__":
     from time import sleep as s
     res = []
-    t = Ticker()
+    t = Timer()
 
     t.start()
     s(1)

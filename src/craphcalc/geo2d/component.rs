@@ -9,23 +9,34 @@ pub struct Point {
 
 
 impl Point {
-    fn new(x: f64, y: f64) -> Point {
+    pub fn new(x: f64, y: f64) -> Point {
         Point {x, y}
     }
 }
 
 
+/// function sample:
+///     k1 * y+ k2 * x = b
 pub struct Line {
-    pub func_args: [f64;3]
+    func_args: [f64;3]
 }
 
 
 impl Line {
-    fn new(p1: &Point, p2: &Point) -> Option<Line> {
+    pub fn new(p1: &Point, p2: &Point) -> Result<Line, ()> {
         match calc_line_func(p1, p2) {
-            Some(func_args) => {Some(Line{func_args})}
-            None => {None}
+            Ok(func_args) => {Ok(Line{func_args})}
+            Err(e) => {Err(())}
         }
     }
+    
+    /// k1 * y+ k2 * x = b
+    pub fn from(k1: f64, k2: f64, b: f64) -> Result<Line, ()> {
+        if k1 == 0.0 && k2 == 0.0{
+            Err(())
+        } else {
+            Ok(Self{func_args: [k1, k2, b]})
+        }
+    } 
 }
 
