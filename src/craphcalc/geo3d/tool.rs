@@ -1,5 +1,3 @@
-use std::pin::Pin;
-
 // 3D part
 use super::{component::*, SpaceVector};
 
@@ -36,7 +34,7 @@ pub fn vec_to_plane(vec: SpaceVector, p: Point) -> Result<Plane, ()> {
     vec.to_plane(&p)
 }
 
-pub fn point_is_in_line(ln: &Line, p: &Point) -> bool {
+pub fn point_is_in_line(p: &Point, ln: &Line) -> bool {
     let k11 = ln.get_func_args()[0][0];
     let k12 = ln.get_func_args()[0][1];
     let b1 = ln.get_func_args()[0][2];
@@ -46,7 +44,7 @@ pub fn point_is_in_line(ln: &Line, p: &Point) -> bool {
     if (k11 * p.y + k12 * p.x == b1) && (k21 * p.y + k22 * p.x == b2) {true} else {false}
 }
 
-pub fn point_is_in_plane(pn: &Plane, p: &Point) -> bool {
+pub fn point_is_in_plane(p: &Point, pn: &Plane) -> bool {
     let k1 = pn.get_func_args()[0];
     let k2 = pn.get_func_args()[1];
     let k3 = pn.get_func_args()[2];
@@ -54,7 +52,7 @@ pub fn point_is_in_plane(pn: &Plane, p: &Point) -> bool {
     if k1 * p.x + k2 * p.y + k3 * p.z == b {true} else {false}
 }
 
-pub fn line_is_in_plane(pn: &Plane, ln: &Line) -> bool {
+pub fn line_is_in_plane(ln: &Line, pn: &Plane) -> bool {
     let k11 = ln.get_func_args()[0][0];
     let k12 = ln.get_func_args()[0][1];
     let b1 = ln.get_func_args()[0][2];
@@ -69,7 +67,7 @@ pub fn line_is_in_plane(pn: &Plane, ln: &Line) -> bool {
     (b * k11 * k21 == b1 * k2 * k21 + b2 * k3 * k11) {true} else {false}
 }
 
-pub fn line_is_parallel(ln1: &Line, ln2: &Line) -> bool { // TODO: Superposition
+pub fn line_is_parallel(ln1: &Line, ln2: &Line) -> bool {
     let k111 = ln1.get_func_args()[0][0];
     let k112 = ln1.get_func_args()[0][1];
     let b11 = ln1.get_func_args()[0][2];
@@ -87,7 +85,7 @@ pub fn line_is_parallel(ln1: &Line, ln2: &Line) -> bool { // TODO: Superposition
 }
 
 
-pub fn line_plane_is_parallel(pn: &Plane, ln: &Line) -> bool {
+pub fn line_plane_is_parallel(ln: &Line, pn: &Plane) -> bool {
     let k11 = ln.get_func_args()[0][0];
     let k12 = ln.get_func_args()[0][1];
     let b1 = ln.get_func_args()[0][2];
@@ -102,14 +100,16 @@ pub fn line_plane_is_parallel(pn: &Plane, ln: &Line) -> bool {
     (b * k11 * k21 != b1 * k2 * k21 + b2 * k3 * k11) {true} else {false}
 }
 
-pub fn plane_is_parallel(pn1: &Plane, pn2: &Plane) -> bool { // TODO: Superposition
+pub fn plane_is_parallel(pn1: &Plane, pn2: &Plane) -> bool {
     let k11 = pn1.get_func_args()[0];
     let k12 = pn1.get_func_args()[1];
     let k13 = pn1.get_func_args()[2];
+    let b1 = pn1.get_func_args()[3];
     let k21 = pn2.get_func_args()[0];
     let k22 = pn2.get_func_args()[1];
     let k23 = pn2.get_func_args()[2];
-    if (k11 * k22 == k21 * k12) && (k11 * k23 == k21 * k13) {true} else {false}
+    let b2 = pn2.get_func_args()[3];
+    if (k11 * k22 == k21 * k12) && (k11 * k23 == k21 * k13) && ((k11 * b2 != k21 * b1)) {true} else {false}
 }
 
 pub fn line_is_vertical(ln1: &Line, ln2: &Line) -> bool {
@@ -125,7 +125,7 @@ pub fn line_is_vertical(ln1: &Line, ln2: &Line) -> bool {
     else {false}
 }
 
-pub fn line_plane_is_vertical(pn: &Plane, ln: &Line) -> bool {
+pub fn line_plane_is_vertical(ln: &Line, pn: &Plane) -> bool {
     let k11 = ln.get_func_args()[0][0];
     let k12 = ln.get_func_args()[0][1];
     let k21 = ln.get_func_args()[1][0];
@@ -179,10 +179,11 @@ pub fn line_is_coplanar(ln1: &Line, ln2: &Line) -> bool {
     if (k111 * k212 == k112 * k211) && (k121 * k222 == k122 * k221) {true} else {false}
 }
 
-fn point_is_superposition(p1: &Point, p2: &Point) -> bool {
+pub fn point_is_superposition(p1: &Point, p2: &Point) -> bool {
     if (p1.x == p2.x) && (p1.y == p2.y) && (p1.z == p2.z) {true} else {false}
 }
-fn line_is_superposition(ln1: &Line, ln2: &Line) -> bool {
+
+pub fn line_is_superposition(ln1: &Line, ln2: &Line) -> bool {
     let k111 = ln1.get_func_args()[0][0];
     let k112 = ln1.get_func_args()[0][1];
     let b11 = ln1.get_func_args()[0][2];
@@ -198,7 +199,8 @@ fn line_is_superposition(ln1: &Line, ln2: &Line) -> bool {
     if (k111 * b21 == k211 * b11) && (k112 * b22 == k212 * b12) && 
     (k121 * b22 == k221 * b12) && (k122 * b22 == k222 * b12) {true} else {false}
 }
-fn plane_is_superposition(pn1: &Plane, pn2: &Plane) -> bool {
+
+pub fn plane_is_superposition(pn1: &Plane, pn2: &Plane) -> bool {
     let k11 = pn1.get_func_args()[0];
     let k12 = pn1.get_func_args()[1];
     let k13 = pn1.get_func_args()[2];
@@ -211,3 +213,129 @@ fn plane_is_superposition(pn1: &Plane, pn2: &Plane) -> bool {
     else {false}
 }
 
+pub fn calc_point_d(p1: &Point, p2: &Point) -> f64 {
+    ((p1.x - p2.x).powi(2) + (p1.y - p2.y).powi(2) + (p1.z - p2.z).powi(2)).sqrt()
+}
+
+pub fn calc_point_line(p: &Point, ln: &Line) -> f64 {
+    let k11 = ln.get_func_args()[0][0];
+    let k12 = ln.get_func_args()[0][1];
+    let b1 = ln.get_func_args()[0][2];
+    let k21 = ln.get_func_args()[1][0];
+    let k22 = ln.get_func_args()[1][1];
+    let b2 = ln.get_func_args()[1][2];
+    (((k11*k22*p.y-k12*k21*p.z-b1*k22+b2*k12).powi(2) + 
+    ((k12*p.x+k11*p.y-b1)*k21).powi(2) + ((k22*p.x+k21*p.z-b2)*k11).powi(2))/
+    ((k11*k12).powi(2)+(k12*k21).powi(2)+(k11*k22).powi(2))).sqrt()
+}
+
+pub fn calc_line_d(ln1: &Line, ln2: &Line) -> f64 {
+    let k111 = ln1.get_func_args()[0][0];
+    let k112 = ln1.get_func_args()[0][1];
+    let b11 = ln1.get_func_args()[0][2];
+    let k121 = ln1.get_func_args()[1][0];
+    let k122 = ln1.get_func_args()[1][1];
+    let b12 = ln1.get_func_args()[1][2];
+    let k211 = ln2.get_func_args()[0][0];
+    let k212 = ln2.get_func_args()[0][1];
+    let b21 = ln2.get_func_args()[0][2];
+    let k221 = ln2.get_func_args()[1][0];
+    let k222 = ln2.get_func_args()[1][1];
+    let b22 = ln2.get_func_args()[1][2];
+    let k1 = k112*k121*k211*k222-k212*k221*k111*k122;
+    let k2 = k111*k211*(k121*k222-k221*k122);
+    let k3 = k121*k221*(k112*k211-k212*k111);
+    ((k211*b11-k111*b21)*(k121*k222-k221*k122)+(k221*b12-k121*b22)*(k112*k211-k212*k111)).abs()/(k1.powi(2)+k2.powi(2)+k3.powi(2)).sqrt()
+}
+
+pub fn calc_point_plane_d(p: &Point, pn: &Plane) -> f64 {
+    let k1 = pn.get_func_args()[0];
+    let k2 = pn.get_func_args()[1];
+    let k3 = pn.get_func_args()[2];
+    let b = pn.get_func_args()[3];
+    (k1*p.x+k2*p.y+k3*p.z-b).abs()/(k1.powi(2)+k2.powi(2)+k3.powi(2)).sqrt()
+}
+
+pub fn calc_line_plane_d(ln: &Line, pn: &Plane) -> f64 {
+    let k11 = ln.get_func_args()[0][0];
+    let k12 = ln.get_func_args()[0][1];
+    let b1 = ln.get_func_args()[0][2];
+    let k21 = ln.get_func_args()[1][0];
+    let k22 = ln.get_func_args()[1][1];
+    let b2 = ln.get_func_args()[1][2];
+    let k1 = pn.get_func_args()[0];
+    let k2 = pn.get_func_args()[1];
+    let k3 = pn.get_func_args()[2];
+    let b = pn.get_func_args()[3];
+    (k2*b1/k11+k3*b2/k21-b).abs()/(k1.powi(2)+k2.powi(2)+k3.powi(2)).sqrt()
+}
+
+pub fn calc_plane_d(pn1: &Plane, pn2: &Plane) -> f64 {
+    let k11 = pn1.get_func_args()[0];
+    let k12 = pn1.get_func_args()[1];
+    let k13 = pn1.get_func_args()[2];
+    let b1 = pn1.get_func_args()[3];
+    let k21 = pn2.get_func_args()[0];
+    let k22 = pn2.get_func_args()[1];
+    let k23 = pn2.get_func_args()[2];
+    let b2 = pn2.get_func_args()[3];
+    let k = if k11 != 0.0 {k21/k11}
+                else if k12 != 0.0 {k22/k12}
+                else {k23/k13};
+    (k*b1-b2).abs()/(k21.powi(2)+k22.powi(2)+k23.powi(2)).sqrt()
+}
+
+pub fn calc_line_angle(ln1: &Line, ln2: &Line) -> f64 {
+    let vec1 = ln1.get_direction_vec();
+    let vec2 = ln2.get_direction_vec(); 
+    ((&vec1 * &vec2).abs() / (vec1.len() * vec2.len())).acos()
+}
+
+pub fn calc_line_plane_angle(ln: &Line, pn: &Plane) -> f64 {
+    let vec1 = ln.get_direction_vec();
+    let vec2 = pn.get_normal_vec();
+    ((&vec1 * &vec2).abs() / (vec1.len() * vec2.len())).asin()
+}
+
+pub fn calc_plane_angle(pn1: &Plane, pn2: &Plane) -> f64 {
+    let vec1 = pn1.get_normal_vec();
+    let vec2 = pn2.get_normal_vec();
+    ((&vec1 * &vec2).abs() / (vec1.len() * vec2.len())).acos()
+}
+
+pub fn calc_line_intersection(ln1: &Line, ln2: &Line) -> Result<Point, ()> {}
+pub fn calc_line_plane_intersection(ln: &Line, pn: &Plane) -> Result<Point, ()> {}
+pub fn calc_plane_intersection(pn1: &Plane, pn2: &Plane) -> Result<Line, ()> {
+    let k11 = pn1.get_func_args()[0];
+    let k12 = pn1.get_func_args()[1];
+    let k13 = pn1.get_func_args()[2];
+    let b1 = pn1.get_func_args()[3];
+    let k21 = pn2.get_func_args()[0];
+    let k22 = pn2.get_func_args()[1];
+    let k23 = pn2.get_func_args()[2];
+    let b2 = pn2.get_func_args()[3];
+    Line::from(k12*k23-k22*k13, k11*k23-k21*k13, b1*k23-b2*k13,
+               k13*k22-k23*k12, k11*k22-k21*k12, b1*k22-b2*k12)
+}
+
+pub trait Inclusion<T> {
+    fn is_included(&self, cpt: T) -> bool;
+}
+pub trait Parallelism<T> {
+    fn is_parallel(&self, cpt: T) -> bool;
+}
+pub trait Vertical<T> {
+    fn is_vertical(&self, cpt: T) -> bool;
+}
+pub trait Superposition<T> {
+    fn is_superposition(&self, cpt: T) -> bool;
+}  
+pub trait CalcDistance<T> {
+    fn calc_d(&self, cpt: T) -> f64;
+}
+pub trait CalcAngle<T> {
+    fn calc_angle(&self, cpt: T) -> f64;
+}
+pub trait CalcIntersection<T, U> {
+    fn calc_intersection(&self, cpt: T) -> U;
+}

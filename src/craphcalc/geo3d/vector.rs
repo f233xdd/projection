@@ -35,28 +35,28 @@ impl fmt::Display for SpaceVector {
     }
 }
 
-impl ops::Add for SpaceVector {
-    type Output = Self;
+impl ops::Add for &SpaceVector {
+    type Output = SpaceVector;
     fn add(self, other: Self) -> Self::Output {
         SpaceVector(self.0 + other.0, self.1 + other.1, self.2 + other.2)
     }
 }
 
-impl ops::Sub for SpaceVector {
-    type Output = Self;
+impl ops::Sub for &SpaceVector {
+    type Output = SpaceVector;
     fn sub(self, other: Self) -> Self::Output {
         SpaceVector(self.0 - other.0, self.1 - other.1, self.2 - other.2)
     }
 }
 
-impl ops::Neg for SpaceVector {
-    type Output = Self;
+impl ops::Neg for &SpaceVector {
+    type Output = SpaceVector;
     fn neg(self) -> Self::Output {
         SpaceVector(-self.0, -self.1, -self.2)
     }
 }
 
-impl ops::Mul<f64> for SpaceVector {
+impl ops::Mul<f64> for &SpaceVector {
     type Output = SpaceVector;
     fn mul(self, other: f64) -> Self::Output {
         SpaceVector(self.0 * other, self.1 * other, self.2 * other)
@@ -64,14 +64,14 @@ impl ops::Mul<f64> for SpaceVector {
 }
 
 /// inner product of vector
-impl ops::Mul<SpaceVector> for SpaceVector {
+impl ops::Mul<&SpaceVector> for &SpaceVector {
     type Output = f64;
-    fn mul(self, other: Self) -> Self::Output {
+    fn mul<'a>(self, other: &'a SpaceVector) -> Self::Output {
         self.0 * other.0 + self.1 * other.1 + self.2 * other.2
     }
 }
 
-impl ops::Div<f64> for SpaceVector {
+impl ops::Div<f64> for &SpaceVector {
     type Output = SpaceVector;
     fn div(self, other: f64) -> Self::Output {
         SpaceVector(self.0 / other, self.1 / other, self.2 / other)
@@ -79,7 +79,7 @@ impl ops::Div<f64> for SpaceVector {
 }
 
 /// outer product of vector
-impl ops::Rem for SpaceVector {
+impl ops::Rem for &SpaceVector {
     type Output = SpaceVector;
     fn rem(self, other: Self) -> Self::Output {
         SpaceVector(self.1*other.2-self.2*other.1, -self.0*other.2+self.2*other.0, self.0*other.1-self.1*other.0)

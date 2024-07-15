@@ -1,2 +1,5 @@
-pub mod component;
-pub mod tool;
+mod component;
+mod tool;
+
+pub use component::*;
+pub use tool::*;
