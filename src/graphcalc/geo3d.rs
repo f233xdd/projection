@@ -1,7 +1,7 @@
-pub mod component;
-mod tool;
+mod component;
+pub mod tool;
 mod vector;
 
-pub use component as cpt;
-pub use tool::*;
+pub use component::*;
+pub use tool::feature;
 pub use vector::SpaceVector;

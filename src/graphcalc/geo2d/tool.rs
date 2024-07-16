@@ -93,24 +93,34 @@ pub fn calc_intersection(ln1: &Line, ln2: &Line) -> Result<Point, ()> {
     if k11 * k22 == k21 * k12 {Ok(Point{x, y})} else {Err(())}
 }
 
-pub trait Inclusion<T> {
-    fn is_included(&self, cpt: &T) -> bool;
-}
-pub trait Parallelism<T> {
-    fn is_parallel(&self, cpt: &T) -> bool;
-}
-pub trait Vertical<T> {
-    fn is_vertical(&self, cpt: &T) -> bool;
-}
-pub trait Superposition<T> {
-    fn is_superposition(&self, cpt: &T) -> bool;
-}  
-pub trait CalcDistance<T, U> {
-    fn calc_d(&self, cpt: &T) -> U;
-}
-pub trait CalcAngle<T> {
-    fn calc_angle(&self, cpt: &T) -> f64;
-}
-pub trait CalcIntersection<T> {
-    fn calc_intersection(&self, cpt: &T) -> Result<Point, ()>;
+pub mod feature {
+    use super::super::component::Point;
+
+    pub trait Inclusion<T> {
+        fn is_included(&self, cpt: &T) -> bool;
+    }
+
+    pub trait Parallelism<T> {
+        fn is_parallel(&self, cpt: &T) -> bool;
+    }
+
+    pub trait Vertical<T> {
+        fn is_vertical(&self, cpt: &T) -> bool;
+    }
+
+    pub trait Superposition<T> {
+        fn is_superposition(&self, cpt: &T) -> bool;
+    }
+
+    pub trait CalcDistance<T, U> {
+        fn calc_d(&self, cpt: &T) -> U;
+    }
+
+    pub trait CalcAngle<T> {
+        fn calc_angle(&self, cpt: &T) -> f64;
+    }
+
+    pub trait CalcIntersection<T> {
+        fn calc_intersection(&self, cpt: &T) -> Result<Point, ()>;
+    }
 }

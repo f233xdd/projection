@@ -1,5 +1,6 @@
 // 2D part
 use super::tool::*;
+use super::tool::feature::*;
 use super::vector::PlaneVector;
 
 pub struct Point {

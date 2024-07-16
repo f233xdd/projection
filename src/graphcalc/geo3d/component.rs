@@ -1,4 +1,5 @@
 use super::tool::*;
+use super::tool::feature::*;
 use super::vector::SpaceVector;
 
 // 3D part

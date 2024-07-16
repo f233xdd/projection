@@ -376,27 +376,36 @@ pub fn calc_plane_intersection(pn1: &Plane, pn2: &Plane) -> Result<Line, ()> {
                k13*k22-k23*k12, k11*k22-k21*k12, b1*k22-b2*k12)
 }
 
-pub trait Inclusion<T> {
-    fn is_included(&self, cpt: &T) -> bool;
-}
-pub trait Parallelism<T> {
-    fn is_parallel(&self, cpt: &T) -> bool;
-}
-pub trait Vertical<T> {
-    fn is_vertical(&self, cpt: &T) -> bool;
-}
-pub trait Coplanarity<T> {
-    fn is_coplanar(&self, cpt: &T) -> bool;
-}
-pub trait Superposition<T> {
-    fn is_superposition(&self, cpt: &T) -> bool;
-}  
-pub trait CalcDistance<T, U> {
-    fn calc_d(&self, cpt: &T) -> U;
-}
-pub trait CalcAngle<T> {
-    fn calc_angle(&self, cpt: &T) -> f64;
-}
-pub trait CalcIntersection<T, U> {
-    fn calc_intersection(&self, cpt: &T) -> U;
+pub mod feature {
+    pub trait Inclusion<T> {
+        fn is_included(&self, cpt: &T) -> bool;
+    }
+
+    pub trait Parallelism<T> {
+        fn is_parallel(&self, cpt: &T) -> bool;
+    }
+
+    pub trait Vertical<T> {
+        fn is_vertical(&self, cpt: &T) -> bool;
+    }
+
+    pub trait Coplanarity<T> {
+        fn is_coplanar(&self, cpt: &T) -> bool;
+    }
+
+    pub trait Superposition<T> {
+        fn is_superposition(&self, cpt: &T) -> bool;
+    }
+
+    pub trait CalcDistance<T, U> {
+        fn calc_d(&self, cpt: &T) -> U;
+    }
+
+    pub trait CalcAngle<T> {
+        fn calc_angle(&self, cpt: &T) -> f64;
+    }
+
+    pub trait CalcIntersection<T, U> {
+        fn calc_intersection(&self, cpt: &T) -> U;
+    }
 }
