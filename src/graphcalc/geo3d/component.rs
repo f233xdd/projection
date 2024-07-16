@@ -44,12 +44,14 @@ impl Line {
                     return Ok(Self{func_args: [[k11, k12, b1], [k21, k22, b2]]});
                 }
             }
-        } else {
+        } else if !(k11 == 0.0 && k21 == 0.0) {
             if k21 == 0.0 && k22 == 0.0 && b2 != 0.0 {
                 return Err(());
             } else {
                 return Ok(Self{func_args: [[k11, k12, b1], [k21, k22, b2]]});
             }
+        } else  {
+            return Err(());
         }
     }
 
