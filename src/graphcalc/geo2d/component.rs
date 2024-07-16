@@ -1,16 +1,39 @@
 // 2D part
-use super::{tool::calc_line_func, PlaneVector};
-
+use super::tool::*;
+use super::vector::PlaneVector;
 
 pub struct Point {
     pub x: f64,
     pub y: f64,
 }
 
-
 impl Point {
     pub fn new(x: f64, y: f64) -> Point {
         Point {x, y}
+    }
+}
+
+impl Inclusion<Line> for Point {
+    fn is_included(&self, cpt: &Line) -> bool {
+        is_in(self, cpt)
+    }
+}
+
+impl Superposition<Point> for Point {
+    fn is_superposition(&self, cpt: &Point) -> bool {
+        point_is_superposition(self, cpt)
+    }
+}
+
+impl CalcDistance<Point, f64> for Point {
+    fn calc_d(&self, cpt: &Point) -> f64 {
+        calc_point_d(self, cpt)
+    }
+}
+
+impl CalcDistance<Line, f64> for Point {
+    fn calc_d(&self, cpt: &Line) -> f64 {
+        calc_point_line_d(self, cpt)
     }
 }
 
@@ -49,3 +72,50 @@ impl Line {
     }
 }
 
+impl Inclusion<Point> for Line {
+    fn is_included(&self, cpt: &Point) -> bool {
+        is_in(cpt, self)
+    }
+}
+
+impl Parallelism<Line> for Line {
+    fn is_parallel(&self, cpt: &Line) -> bool {
+        is_parallel(self, cpt)
+    }   
+}
+
+impl Vertical<Line> for Line {
+    fn is_vertical(&self, cpt: &Line) -> bool {
+        is_vertical(self, cpt)
+    }
+}
+
+impl Superposition<Line> for Line {
+    fn is_superposition(&self, cpt: &Line) -> bool {
+        line_is_superposition(self, cpt)
+    }
+}
+
+impl CalcDistance<Point, f64> for Line {
+    fn calc_d(&self, cpt: &Point) -> f64 {
+        calc_point_line_d(cpt, self)
+    }
+}
+
+impl CalcDistance<Line, Result<f64, ()>> for Line {
+    fn calc_d(&self, cpt: &Line) -> Result<f64, ()> {
+        calc_line_d(self, cpt)
+    }
+}
+
+impl CalcAngle<Line> for Line {
+    fn calc_angle(&self, cpt: &Line) -> f64 {
+        calc_angle(self, cpt)
+    }
+}
+
+impl CalcIntersection<Line> for Line {
+    fn calc_intersection(&self, cpt: &Line) -> Result<Point, ()> {
+        calc_intersection(self, cpt)
+    }
+}

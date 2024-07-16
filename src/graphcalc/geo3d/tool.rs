@@ -260,7 +260,7 @@ pub fn calc_point_plane_d(p: &Point, pn: &Plane) -> f64 {
     (k1*p.x+k2*p.y+k3*p.z-b).abs()/(k1.powi(2)+k2.powi(2)+k3.powi(2)).sqrt()
 }
 
-pub fn calc_line_plane_d(ln: &Line, pn: &Plane) -> f64 {
+pub fn calc_line_plane_d(ln: &Line, pn: &Plane) -> Result<f64, ()> {
     let k11 = ln.get_func_args()[0][0];
     let k12 = ln.get_func_args()[0][1];
     let b1 = ln.get_func_args()[0][2];
@@ -271,10 +271,12 @@ pub fn calc_line_plane_d(ln: &Line, pn: &Plane) -> f64 {
     let k2 = pn.get_func_args()[1];
     let k3 = pn.get_func_args()[2];
     let b = pn.get_func_args()[3];
-    (k2*b1/k11+k3*b2/k21-b).abs()/(k1.powi(2)+k2.powi(2)+k3.powi(2)).sqrt()
+    if line_plane_is_parallel(ln, pn) {
+        Ok((k2*b1/k11+k3*b2/k21-b).abs()/(k1.powi(2)+k2.powi(2)+k3.powi(2)).sqrt())
+    } else {Err(())}
 }
 
-pub fn calc_plane_d(pn1: &Plane, pn2: &Plane) -> f64 {
+pub fn calc_plane_d(pn1: &Plane, pn2: &Plane) -> Result<f64, ()> {
     let k11 = pn1.get_func_args()[0];
     let k12 = pn1.get_func_args()[1];
     let k13 = pn1.get_func_args()[2];
@@ -283,10 +285,12 @@ pub fn calc_plane_d(pn1: &Plane, pn2: &Plane) -> f64 {
     let k22 = pn2.get_func_args()[1];
     let k23 = pn2.get_func_args()[2];
     let b2 = pn2.get_func_args()[3];
-    let k = if k11 != 0.0 {k21/k11}
-                else if k12 != 0.0 {k22/k12}
-                else {k23/k13};
-    (k*b1-b2).abs()/(k21.powi(2)+k22.powi(2)+k23.powi(2)).sqrt()
+    if plane_is_parallel(pn1, pn2) {
+        let k = if k11 != 0.0 {k21/k11}
+                    else if k12 != 0.0 {k22/k12}
+                    else {k23/k13};
+        Ok((k*b1-b2).abs()/(k21.powi(2)+k22.powi(2)+k23.powi(2)).sqrt())
+    } else {Err(())}
 }
 
 pub fn calc_line_angle(ln1: &Line, ln2: &Line) -> f64 {
