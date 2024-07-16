@@ -1,4 +1,4 @@
-use super::tool::{calc_line_func, calc_plane_func};
+use super::tool::*;
 use super::vector::SpaceVector;
 
 // 3D part
@@ -8,10 +8,45 @@ pub struct Point {
     pub z: f64,
 }
 
-
 impl Point {
     pub fn new(x: f64, y: f64, z: f64) -> Self {
         Self{x, y, z}
+    }
+}
+
+impl Inclusion<Line> for Point {
+    fn is_included(&self, cpt: &Line) -> bool {
+        point_is_in_line(self, cpt)
+    }
+}
+
+impl Inclusion<Plane> for Point {
+    fn is_included(&self, cpt: &Plane) -> bool {
+        point_is_in_plane(self, cpt)
+    }
+}
+
+impl Superposition<Point> for Point {
+    fn is_superposition(&self, cpt: &Point) -> bool {
+        point_is_superposition(self, cpt)
+    }
+}
+
+impl CalcDistance<Point, f64> for Point {
+    fn calc_d(&self, cpt: &Point) -> f64 {
+        calc_point_d(self, cpt)
+    }
+}
+
+impl CalcDistance<Line, f64> for Point {
+    fn calc_d(&self, cpt: &Line) -> f64 {
+        calc_point_line_d(self, cpt)
+    }
+}
+
+impl CalcDistance<Plane, f64> for Point {
+    fn calc_d(&self, cpt: &Plane) -> f64 {
+        calc_point_plane_d(self, cpt)
     }
 }
 
@@ -68,6 +103,89 @@ impl Line {
     }
 }
 
+impl Inclusion<Plane> for Line {
+    fn is_included(&self, cpt: &Plane) -> bool {
+        line_is_in_plane(self, cpt)
+    }
+}
+
+impl Parallelism<Line> for Line {
+    fn is_parallel(&self, cpt: &Line) -> bool {
+        line_is_parallel(self, cpt)
+    }
+}
+
+impl Parallelism<Plane> for Line {
+    fn is_parallel(&self, cpt: &Plane) -> bool {
+        line_plane_is_parallel(self, cpt)
+    }
+}
+
+impl Vertical<Line> for Line {
+    fn is_vertical(&self, cpt: &Line) -> bool {
+        line_is_vertical(self, cpt)
+    }
+}
+
+impl Vertical<Plane> for Line {
+    fn is_vertical(&self, cpt: &Plane) -> bool {
+        line_plane_is_vertical(self, cpt)
+    }
+}
+
+impl Coplanarity<Line> for Line {
+    fn is_coplanar(&self, cpt: &Line) -> bool {
+        line_is_coplanar(self, cpt)
+    }
+}
+
+impl Superposition<Line> for Line {
+    fn is_superposition(&self, cpt: &Line) -> bool {
+        line_is_superposition(self, cpt)
+    }
+}
+
+impl CalcDistance<Point, f64> for Line{
+    fn calc_d(&self, cpt: &Point) -> f64 {
+        calc_point_line_d(cpt, self)
+    }
+}
+
+impl CalcDistance<Line, f64> for Line{
+    fn calc_d(&self, cpt: &Line) -> f64 {
+        calc_line_d(self, cpt)
+    }
+}
+
+impl CalcDistance<Plane, Result<f64, ()>> for Line{
+    fn calc_d(&self, cpt: &Plane) -> Result<f64, ()> {
+        calc_line_plane_d(self, cpt)
+    }
+}
+
+impl CalcAngle<Line> for Line {
+    fn calc_angle(&self, cpt: &Line) -> f64 {
+        calc_line_angle(self, cpt)
+    }
+}
+
+impl CalcAngle<Plane> for Line {
+    fn calc_angle(&self, cpt: &Plane) -> f64 {
+        calc_line_plane_angle(self, cpt)
+    }
+}
+
+impl CalcIntersection<Line, Result<Point, ()>> for Line {
+    fn calc_intersection(&self, cpt: &Line) -> Result<Point, ()> {
+        calc_line_intersection(self, cpt)
+    }
+}
+
+impl CalcIntersection<Plane, Result<Point, ()>> for Line {
+    fn calc_intersection(&self, cpt: &Plane) -> Result<Point, ()> {
+        calc_line_plane_intersection(self, cpt)
+    }
+}
 
 /// function sample:
 /// 
@@ -99,5 +217,77 @@ impl Plane {
 
     pub fn get_normal_vec(&self) -> SpaceVector {
         SpaceVector(self.func_args[0], self.func_args[1], self.func_args[2])
+    }
+}
+
+impl Parallelism<Line> for Plane {
+    fn is_parallel(&self, cpt: &Line) -> bool {
+        line_plane_is_parallel(cpt, self)
+    }
+}
+
+impl Parallelism<Plane> for Plane {
+    fn is_parallel(&self, cpt: &Plane) -> bool {
+        plane_is_parallel(self, cpt)
+    }
+}
+
+impl Vertical<Line> for Plane {
+    fn is_vertical(&self, cpt: &Line) -> bool {
+        line_plane_is_vertical(cpt, self)
+    }
+}
+
+impl Vertical<Plane> for Plane {
+    fn is_vertical(&self, cpt: &Plane) -> bool {
+        plane_is_vertical(self, cpt)
+    }
+}
+
+impl Superposition<Plane> for Plane {
+    fn is_superposition(&self, cpt: &Plane) -> bool {
+        plane_is_superposition(self, cpt)
+    }
+}
+
+impl CalcDistance<Point, f64> for Plane {
+    fn calc_d(&self, cpt: &Point) -> f64 {
+        calc_point_plane_d(cpt, self)
+    }
+}
+
+impl CalcDistance<Line, Result<f64, ()>> for Plane {
+    fn calc_d(&self, cpt: &Line) -> Result<f64, ()> {
+        calc_line_plane_d(cpt, self)
+    }
+}
+
+impl CalcDistance<Plane, Result<f64, ()>> for Plane {
+    fn calc_d(&self, cpt: &Plane) -> Result<f64, ()> {
+        calc_plane_d(self, cpt)
+    }
+}
+
+impl CalcAngle<Line> for Plane {
+    fn calc_angle(&self, cpt: &Line) -> f64 {
+        calc_line_plane_angle(cpt, self)
+    }
+}
+
+impl CalcAngle<Plane> for Plane {
+    fn calc_angle(&self, cpt: &Plane) -> f64 {
+        calc_plane_angle(self, cpt)
+    }
+}
+
+impl CalcIntersection<Line, Result<Point, ()>> for Plane {
+    fn calc_intersection(&self, cpt: &Line) -> Result<Point, ()> {
+        calc_line_plane_intersection(cpt, &self)
+    }
+}
+
+impl CalcIntersection<Plane, Result<Line, ()>> for Plane {
+    fn calc_intersection(&self, cpt: &Plane) -> Result<Line, ()> {
+        calc_plane_intersection(self, cpt)
     }
 }
