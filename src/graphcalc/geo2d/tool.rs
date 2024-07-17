@@ -1,6 +1,10 @@
 // 2D part
-use super::component::{Point, Line};
+use super::{component::*, PlaneVector};
 
+
+pub fn vec_to_line(vec: PlaneVector, p: Point) -> Result<Line, ()> {
+    vec.to_line(&p)
+}
 
 /// k1 * y+ k2 * x = b
 pub fn calc_line_func(p1: &Point, p2: &Point) -> Result<[f64; 3], ()> {
@@ -15,7 +19,7 @@ pub fn is_in(p: &Point, ln: &Line) -> bool {
     let k1 = ln.get_func_args()[0];
     let k2 = ln.get_func_args()[1];
     let b = ln.get_func_args()[2];
-    k1 * p.x + k2 * p.y == b
+    k1 * p.y + k2 * p.x == b
 }
 
 /// superposition is not included
@@ -88,9 +92,12 @@ pub fn calc_intersection(ln1: &Line, ln2: &Line) -> Result<Point, ()> {
     let k21 = ln2.get_func_args()[0];
     let k22 = ln2.get_func_args()[1];
     let b2 = ln2.get_func_args()[2];
-    let x = (k12 * b1 - k11 * b2) / (k12 * k21 - k11 * k22);
-    let y = (k21 * b1 - k12 * b2) / (k11 * k22 - k12 * k21);
-    if k11 * k22 == k21 * k12 {Ok(Point{x, y})} else {Err(())}
+    let v = k11 * k22 - k21 * k12;
+    if v != 0.0 {
+        let x = (k12 * b1 - k11 * b2) / -v;
+        let y = (k21 * b1 - k12 * b2) / v;
+        Ok(Point{x, y})
+    } else {Err(())}
 }
 
 pub mod feature {
