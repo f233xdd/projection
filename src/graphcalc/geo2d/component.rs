@@ -1,3 +1,5 @@
+use std::fmt;
+
 // 2D part
 use super::tool::*;
 use super::tool::feature::*;
@@ -11,6 +13,12 @@ pub struct Point {
 impl Point {
     pub fn new(x: f64, y: f64) -> Point {
         Point {x, y}
+    }
+}
+
+impl fmt::Display for Point {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "<Point: ({}, {})>", self.x, self.y)
     }
 }
 
@@ -41,35 +49,52 @@ impl CalcDistance<Line, f64> for Point {
 
 /// function sample:
 /// 
-///     k1 * y + k2 * x = b
+///     k1 * x + k2 * y = b
 pub struct Line {
-    func_args: [f64;3]
+    fn_args: (f64, f64, f64)
 }
 
 
 impl Line {
     pub fn new(p1: &Point, p2: &Point) -> Result<Line, ()> {
         match calc_line_func(p1, p2) {
-            Ok(func_args) => {Ok(Line{func_args})}
+            Ok(func_args) => {Ok(Line{fn_args: func_args})}
             Err(()) => {Err(())}
         }
     }
     
-    /// k1 * y+ k2 * x = b
+    /// k1 * x + k2 * y = b
     pub fn from(k1: f64, k2: f64, b: f64) -> Result<Line, ()> {
         if k1 == 0.0 && k2 == 0.0{
             Err(())
         } else {
-            Ok(Self{func_args: [k1, k2, b]})
+            Ok(Self{fn_args: (k1, k2, b)})
         }
     } 
 
-    pub fn get_func_args(&self) -> [f64; 3] {
-        self.func_args
+    pub fn func_args(&self) -> (f64, f64, f64) {
+        self.fn_args
     }
 
     pub fn get_direction_vec(&self) -> PlaneVector {
-        PlaneVector(self.func_args[0], -self.func_args[1])
+        PlaneVector(self.fn_args.0, -self.fn_args.1)
+    }
+}
+
+impl fmt::Display for Line {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let (k1, k2, b) = self.func_args();
+        if k1 == 0.0 {
+            write!(f, "<Line {{(x, y)|{k2}y={b}}}>")
+        } else if k2 == 0.0 {
+            write!(f, "<Line {{(x, y)|{k1}x={b}}}>")
+        } else {
+            if k2 > 0.0 {
+                write!(f, "<Line {{(x, y)|{k1}x+{k2}y={b}}}>")
+            } else { // k2 < 0.0
+                write!(f, "<Line {{(x, y)|{k1}x{k2}y={b}}}>")
+            }
+        }
     }
 }
 

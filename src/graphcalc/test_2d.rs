@@ -5,8 +5,8 @@
 // However, it's a pity that he can't write code by Rust, so I did all these things.
 use std::f64::consts::PI;
 
-use crate::geo2d;
-use crate::geo2d::tool::*;
+use super::geo2d;
+use super::geo2d::tool::*;
 use geo2d::Point as p;
 use geo2d::Line as ln;
 
@@ -25,7 +25,7 @@ pub fn test_main() {
 
 fn test_calc_line_func() {
     let v = calc_line_func(&p{x: 9.0, y: 52.0}, &p{x: 5.0 ,y: 32.0}).unwrap();
-    assert_eq!(v, [-4.0,20.0,-28.0]);
+    assert_eq!(v, (20.0,-4.0,-28.0));
 }
 
 fn test_is_in() {

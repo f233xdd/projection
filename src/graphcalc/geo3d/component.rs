@@ -91,7 +91,7 @@ impl Line {
         }
     }
 
-    pub fn get_func_args(&self) -> [[f64; 3]; 2] {
+    pub fn func_args(&self) -> [[f64; 3]; 2] {
         self.func_args
     }
 
@@ -212,7 +212,7 @@ impl Plane {
         }
     }
 
-    pub fn get_func_args(&self) -> [f64; 4] {
+    pub fn func_args(&self) -> [f64; 4] {
         self.func_args
     }
 
