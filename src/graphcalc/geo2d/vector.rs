@@ -3,54 +3,58 @@ use std::{ops, fmt};
 use super::component::{Point, Line};
 use super::super::geo3d::SpaceVector;
 
-pub struct PlaneVector(pub f64, pub f64);
+pub struct PlaneVector{x: f64, y: f64}
 
 impl PlaneVector {
-    pub fn new(x: f64, y: f64) -> Self  {
-        PlaneVector(x, y)
+    pub fn new(x: f64, y: f64) -> Self {
+        PlaneVector{x, y}
+    }
+    pub fn pos(&self) -> (f64, f64) {
+        (self.x, self.y)
     }
     pub fn len(&self) -> f64  {
-        (self.0.powi(2) + self.1.powi(2)).sqrt()
+        (self.x.powi(2) + self.y.powi(2)).sqrt()
     }
     pub fn copy(&self) -> Self {
-        PlaneVector(self.0, self.1)
+        PlaneVector{x: self.x, y: self.y}
     }
     pub fn to_line(&self, p: &Point) -> Result<Line, ()> {
-        Line::from(self.0, -self.1, self.0 * p.y - self.1 * p.x)
+        let (x_p, y_p) = p.pos();
+        Line::new(-self.y, self.x, self.x * y_p - self.y * x_p)
     }
 }
 
 impl fmt::Display for PlaneVector {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "({}, {})", self.0, self.1)
+        write!(f, "<Vector ({}, {})>", self.x, self.y)
     }
 }
 
 impl ops::Add for &PlaneVector {
     type Output = PlaneVector;
     fn add(self, other: Self) -> Self::Output {
-        PlaneVector(self.0 + other.0, self.1 + other.1)
+        PlaneVector{x: self.x + other.x, y: self.y + other.y}
     }
 }
 
 impl ops::Sub for &PlaneVector {
     type Output = PlaneVector;
     fn sub(self, other: Self) -> Self::Output {
-        PlaneVector(self.0 - other.0, self.1 - other.1)
+        PlaneVector{x: self.x - other.x, y: self.y - other.y}
     }
 }
 
 impl ops::Neg for &PlaneVector {
     type Output = PlaneVector;
     fn neg(self) -> Self::Output {
-        PlaneVector(-self.0, -self.1)
+        PlaneVector{x: -self.x, y: -self.y}
     }
 }
 
 impl ops::Mul<f64> for &PlaneVector {
     type Output = PlaneVector;
     fn mul(self, other: f64) -> Self::Output {
-        PlaneVector(self.0 * other, self.1 * other)
+        PlaneVector{x: self.x * other, y: self.y * other}
     }
 }
 
@@ -58,14 +62,14 @@ impl ops::Mul<f64> for &PlaneVector {
 impl ops::Mul<&PlaneVector> for &PlaneVector {
     type Output = f64;
     fn mul<'a>(self, other: &'a PlaneVector) -> Self::Output {
-        self.0 * other.0 + self.1 * other.1
+        self.x * other.x + self.y * other.y
     }
 }
 
 impl ops::Div<f64> for &PlaneVector {
     type Output = PlaneVector;
     fn div(self, other: f64) -> Self::Output {
-        PlaneVector(self.0 / other, self.1 / other)
+        PlaneVector{x: self.x / other, y: self.y / other}
     }
 }
 
@@ -73,6 +77,6 @@ impl ops::Div<f64> for &PlaneVector {
 impl ops::Rem for &PlaneVector {
     type Output = SpaceVector;
     fn rem(self, other: Self) -> Self::Output {
-        SpaceVector(0.0, 0.0, self.0 * other.1 - self.1 * other.0)
+        SpaceVector::new(0.0, 0.0, self.x * other.y - self.y * other.x)
     }
 }

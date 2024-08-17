@@ -6,13 +6,16 @@ use super::tool::feature::*;
 use super::vector::PlaneVector;
 
 pub struct Point {
-    pub x: f64,
-    pub y: f64,
+    x: f64,
+    y: f64,
 }
 
 impl Point {
     pub fn new(x: f64, y: f64) -> Point {
         Point {x, y}
+    }
+    pub fn pos(&self) -> (f64, f64) {
+        (self.x, self.y)
     }
 }
 
@@ -56,15 +59,8 @@ pub struct Line {
 
 
 impl Line {
-    pub fn new(p1: &Point, p2: &Point) -> Result<Line, ()> {
-        match calc_line_func(p1, p2) {
-            Ok(func_args) => {Ok(Line{fn_args: func_args})}
-            Err(()) => {Err(())}
-        }
-    }
-    
     /// k1 * x + k2 * y = b
-    pub fn from(k1: f64, k2: f64, b: f64) -> Result<Line, ()> {
+    pub fn new(k1: f64, k2: f64, b: f64) -> Result<Line, ()> {
         if k1 == 0.0 && k2 == 0.0{
             Err(())
         } else {
@@ -72,28 +68,45 @@ impl Line {
         }
     } 
 
-    pub fn func_args(&self) -> (f64, f64, f64) {
+    pub fn from(p1: &Point, p2: &Point) -> Result<Line, ()> {
+        match calc_line_fn(p1, p2) {
+            Ok(func_args) => {Ok(Line{fn_args: func_args})}
+            Err(()) => {Err(())}
+        }
+    }
+
+    pub fn fn_args(&self) -> (f64, f64, f64) {
         self.fn_args
     }
 
     pub fn get_direction_vec(&self) -> PlaneVector {
-        PlaneVector(self.fn_args.0, -self.fn_args.1)
+        PlaneVector::new(self.fn_args.1, -self.fn_args.0)
     }
 }
 
 impl fmt::Display for Line {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let (k1, k2, b) = self.func_args();
-        if k1 == 0.0 {
-            write!(f, "<Line {{(x, y)|{k2}y={b}}}>")
-        } else if k2 == 0.0 {
-            write!(f, "<Line {{(x, y)|{k1}x={b}}}>")
+        let (k1, k2, b) = self.fn_args();
+        write!(f, "<Line {{(x, y)|").unwrap();
+
+        if k1 == 1.0 {
+            write!(f, "x").unwrap();
+        } else if k1 == -1.0 {
+            write!(f, "-x").unwrap();
+        } else if k1 == 0.0 {} else {
+            write!(f, "{k1}x").unwrap();
+        }
+
+        if k2 == 1.0 {
+            write!(f, "+y={b}}}>")
+        } else if k2 == -1.0 {
+            write!(f, "-y={b}}}>")
+        } else if k2 > 0.0 {
+            write!(f, "+{k2}y={b}}}>")
+        } else if k2 < 0.0 {
+            write!(f, "{k2}y={b}}}>")
         } else {
-            if k2 > 0.0 {
-                write!(f, "<Line {{(x, y)|{k1}x+{k2}y={b}}}>")
-            } else { // k2 < 0.0
-                write!(f, "<Line {{(x, y)|{k1}x{k2}y={b}}}>")
-            }
+            write!(f, "={b}}}>")
         }
     }
 }
