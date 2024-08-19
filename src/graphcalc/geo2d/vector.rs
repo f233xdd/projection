@@ -80,3 +80,9 @@ impl ops::Rem for &PlaneVector {
         SpaceVector::new(0.0, 0.0, self.x * other.y - self.y * other.x)
     }
 }
+
+impl PartialEq<PlaneVector> for PlaneVector {
+    fn eq(&self, other: &PlaneVector) -> bool {
+        self.x == other.x && self.y == other.y
+    }
+}

@@ -1,6 +1,6 @@
 // 2D part
 use super::{component::*, PlaneVector};
-
+use super::super::algebra::calc::approximate;
 
 pub fn vec_to_line(vec: &PlaneVector, p: &Point) -> Result<Line, ()> {
     vec.to_line(p)
@@ -21,32 +21,35 @@ pub fn calc_line_fn(p1: &Point, p2: &Point) -> Result<(f64, f64, f64), ()> {
 pub fn is_in(p: &Point, ln: &Line) -> bool {
     let (x_p, y_p) = p.pos();
     let (k1, k2, b) = ln.fn_args();
-    k1 * x_p + k2 * y_p == b
+    approximate(k1 * x_p + k2 * y_p, b)
 }
 
 /// superposition is not included
 pub fn is_parallel(ln1: &Line, ln2: &Line) -> bool {
     let (k11, k12, b1) = ln1.fn_args();
     let (k21, k22, b2) = ln2.fn_args();
-    (k11 * k22 == k21 * k12) && (k11 * b2 != k21 * b1)
+    approximate(k11 * k22, k21 * k12) &&
+    !approximate(k11 * b2, k21 * b1)
 }
 
 pub fn is_vertical(ln1: &Line, ln2: &Line) -> bool {
     let (k11, k12, _) = ln1.fn_args();
     let (k21, k22, _) = ln2.fn_args();
-    k11 * k21 + k12 * k22 == 0.0
+    approximate(k11 * k21 + k12 * k22, 0.0)
 }
 
 pub fn point_is_superposition(p1: &Point, p2: &Point) -> bool {
     let (x_p1, y_p1) = p1.pos();
     let (x_p2, y_p2) = p2.pos();
-    (x_p1 == x_p2) && (y_p1 == y_p2)
+    approximate(x_p1, x_p2) &&
+    approximate(y_p1, y_p2)
 }
 
 pub fn line_is_superposition(ln1: &Line, ln2: &Line) -> bool {
     let (k11, k12, b1) = ln1.fn_args();
     let (k21, k22, b2) = ln2.fn_args();
-    k11 * b2 == k21 * b1 && k12 * b2 == k22 * b1
+    approximate(k11 * b2, k21 * b1) &&
+    approximate(k12 * b2, k22 * b1)
 }
 
 pub fn calc_point_d(p1: &Point, p2: &Point) -> f64 {

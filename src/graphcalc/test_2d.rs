@@ -73,7 +73,7 @@ fn test_calc_line_d() {
 fn test_calc_angle() {
     let ln1 = ln!((8.0, 5.0), (9.0, 6.0)).unwrap();
     let ln2 = ln!((1.0, 1.0), (5.0, 1.0)).unwrap();
-    assert!(calc_angle(&ln1, &ln2) - PI/4.0 < 0.000000000000001);
+    assert!((calc_angle(&ln1, &ln2) - PI/4.0).abs() < 0.0000001);
 }
 
 fn test_calc_intersection() {

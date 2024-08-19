@@ -1,5 +1,6 @@
 // 3D part
 use super::{component::*, SpaceVector};
+use super::super::algebra::calc::approximate;
 
 /// function sample:
 /// 
@@ -22,11 +23,11 @@ pub fn calc_plane_fn(p1: &Point, p2: &Point, p3: &Point) -> Result<(f64, f64, f6
     let (x_p1, y_p1, z_p1) = p1.pos();
     let (x_p2, y_p2, z_p2) = p2.pos();
     let (x_p3, y_p3, z_p3) = p3.pos();
-    let k1 = (x_p1 - x_p2) * (y_p2 - y_p3) - (y_p1 - y_p2) * (x_p2 - x_p1);
-    let k2 = (y_p1 - y_p2) * (z_p2 - z_p3) - (z_p1 - z_p2) * (y_p2 - y_p3);
-    let k3 = (z_p1 - z_p2) * (x_p2 - x_p1) - (x_p1 - x_p2) * (z_p2 - z_p3);
-    let b = x_p1 * k2 + y_p1 * k3 + z_p1 * k1;
-    if k1 != 0.0 && k2 != 0.0 && k3 != 0.0 {
+    let k1 = (y_p1 - y_p2) * (z_p2 - z_p3) - (z_p1 - z_p2) * (y_p2 - y_p3);
+    let k2 = (z_p1 - z_p2) * (x_p2 - x_p3) - (x_p1 - x_p2) * (z_p2 - z_p3);
+    let k3 = (x_p1 - x_p2) * (y_p2 - y_p3) - (y_p1 - y_p2) * (x_p2 - x_p3);
+    let b = x_p1 * k1 + y_p1 * k2 + z_p1 * k3;
+    if k1 != 0.0 || k2 != 0.0 || k3 != 0.0 {
         return Ok((k1, k2, k3, b));
     } else {
         return Err(());
@@ -49,13 +50,14 @@ pub fn point_is_in_line(p: &Point, ln: &Line) -> bool {
     let k21 = ln.fn_args()[1][0];
     let k22 = ln.fn_args()[1][1];
     let b2 = ln.fn_args()[1][2];
-    (k11 * y_p + k12 * x_p == b1) && (k21 * y_p + k22 * x_p == b2)
+    approximate(k11 * y_p + k12 * x_p, b1) &&
+    approximate(k21 * z_p + k22 * x_p, b2)
 }
 
 pub fn point_is_in_plane(p: &Point, pn: &Plane) -> bool {
     let (x_p, y_p, z_p) = p.pos();
     let (k1 ,k2, k3, b) = pn.fn_args();
-    k1 * x_p + k2 * y_p + k3 * z_p == b
+    approximate(k1 * x_p + k2 * y_p + k3 * z_p, b)
 }
 
 pub fn line_is_in_plane(ln: &Line, pn: &Plane) -> bool {
@@ -66,8 +68,8 @@ pub fn line_is_in_plane(ln: &Line, pn: &Plane) -> bool {
     let k22 = ln.fn_args()[1][1];
     let b2 = ln.fn_args()[1][2];
     let (k1 ,k2, k3, b) = pn.fn_args();
-    (k1 * k11 * k21 == k2 * k12 * k21 + k3 * k22 * k11) && 
-    (b * k11 * k21 == b1 * k2 * k21 + b2 * k3 * k11)
+    approximate(k1 * k11 * k21, k2 * k12 * k21 + k3 * k22 * k11) &&
+    approximate(b * k11 * k21, b1 * k2 * k21 + b2 * k3 * k11)
 }
 
 pub fn line_is_parallel(ln1: &Line, ln2: &Line) -> bool {
@@ -83,8 +85,10 @@ pub fn line_is_parallel(ln1: &Line, ln2: &Line) -> bool {
     let k221 = ln2.fn_args()[1][0];
     let k222 = ln2.fn_args()[1][1];
     let b22 = ln2.fn_args()[1][2];
-    (k111 * k212 == k112 * k211) && (k121 * k222 == k122 * k221) && 
-    ((k111 * b21 != k211 * b11) || (k121 * b22 != k221 * b12))
+    approximate(k111 * k212, k112 * k211) &&
+    approximate(k121 * k222, k122 * k221) &&
+    (!approximate(k111 * b21, k211 * b11) ||
+    !approximate(k121 * b22, k221 * b12))
 }
 
 
@@ -96,14 +100,16 @@ pub fn line_plane_is_parallel(ln: &Line, pn: &Plane) -> bool {
     let k22 = ln.fn_args()[1][1];
     let b2 = ln.fn_args()[1][2];
     let (k1 ,k2, k3, b) = pn.fn_args();
-    (k1 * k11 * k21 == k2 * k12 * k21 + k3 * k22 * k11) && 
-    (b * k11 * k21 != b1 * k2 * k21 + b2 * k3 * k11)
+    approximate(k1 * k11 * k21, k2 * k12 * k21 + k3 * k22 * k11) && 
+    !approximate(b * k11 * k21, b1 * k2 * k21 + b2 * k3 * k11)
 }
 
 pub fn plane_is_parallel(pn1: &Plane, pn2: &Plane) -> bool {
     let (k11 ,k12, k13, b1) = pn1.fn_args();
     let (k21 ,k22, k23, b2) = pn2.fn_args();
-    (k11 * k22 == k21 * k12) && (k11 * k23 == k21 * k13) && ((k11 * b2 != k21 * b1))
+    approximate(k11 * k22, k21 * k12) &&
+    approximate(k11 * k23, k21 * k13) &&
+    !approximate(k11 * b2, k21 * b1)
 }
 
 pub fn line_is_vertical(ln1: &Line, ln2: &Line) -> bool {
@@ -115,7 +121,7 @@ pub fn line_is_vertical(ln1: &Line, ln2: &Line) -> bool {
     let k212 = ln2.fn_args()[0][1];
     let k221 = ln2.fn_args()[1][0];
     let k222 = ln2.fn_args()[1][1];
-    k111 * k121 * k211 * k221 + k112 * k121 * k212 * k221 + k111 * k122 * k211 * k222 == 0.0
+    approximate(k111 * k121 * k211 * k221 + k112 * k121 * k212 * k221 + k111 * k122 * k211 * k222, 0.0)
 }
 
 pub fn line_plane_is_vertical(ln: &Line, pn: &Plane) -> bool {
@@ -124,13 +130,14 @@ pub fn line_plane_is_vertical(ln: &Line, pn: &Plane) -> bool {
     let k21 = ln.fn_args()[1][0];
     let k22 = ln.fn_args()[1][1];
     let (k1 ,k2, k3, _) = pn.fn_args();
-    (k1 * k12 + k2 * k11 == 0.0) && (k1 * k22 + k3 * k21 == 0.0)
+    approximate(k1 * k12 + k2 * k11, 0.0) &&
+    approximate(k1 * k22 + k3 * k21, 0.0)
 }
 
 pub fn plane_is_vertical(pn1: &Plane, pn2: &Plane) -> bool {
     let (k11 ,k12, k13, _) = pn1.fn_args();
     let (k21 ,k22, k23, _) = pn2.fn_args();
-    k11 * k21 + k12 * k22 + k13 * k23 == 0.0
+    approximate(k11 * k21 + k12 * k22 + k13 * k23, 0.0)
 }
 
 // pub fn line_is_intersected(ln1: &Line, ln2: &Line) -> bool {
@@ -167,13 +174,15 @@ pub fn line_is_coplanar(ln1: &Line, ln2: &Line) -> bool {
     let k221 = ln2.fn_args()[1][0];
     let k222 = ln2.fn_args()[1][1];
     let b22 = ln2.fn_args()[1][2];
-    (k121 * k222 - k122 * k221) * (k211 * b11 - k111 * b21) == (k111 * k212 - k112 * k211) * (k221 * b12 - k121 * b22)
+    approximate((k121 * k222 - k122 * k221) * (k211 * b11 - k111 * b21), (k111 * k212 - k112 * k211) * (k221 * b12 - k121 * b22))
 }
 
 pub fn point_is_superposition(p1: &Point, p2: &Point) -> bool {
     let (x_p1, y_p1, z_p1) = p1.pos();
     let (x_p2, y_p2, z_p2) = p2.pos();
-    (x_p1 == x_p2) && (y_p1 == y_p2) && (z_p1 == z_p2)
+    approximate(x_p1, x_p2) &&
+    approximate(y_p1, y_p2) &&
+    approximate(z_p1, z_p2)
 }
 
 pub fn line_is_superposition(ln1: &Line, ln2: &Line) -> bool {
@@ -189,14 +198,18 @@ pub fn line_is_superposition(ln1: &Line, ln2: &Line) -> bool {
     let k221 = ln2.fn_args()[1][0];
     let k222 = ln2.fn_args()[1][1];
     let b22 = ln2.fn_args()[1][2];
-    (k111 * b21 == k211 * b11) && (k112 * b22 == k212 * b12) && 
-    (k121 * b22 == k221 * b12) && (k122 * b22 == k222 * b12)
+    approximate(k111 * b21, k211 * b11) &&
+    approximate(k112 * b22, k212 * b12) &&
+    approximate(k121 * b22, k221 * b12) &&
+    approximate(k122 * b22, k222 * b12)
 }
 
 pub fn plane_is_superposition(pn1: &Plane, pn2: &Plane) -> bool {
     let (k11 ,k12, k13, b1) = pn1.fn_args();
     let (k21 ,k22, k23, b2) = pn2.fn_args();
-    (k11 * b2 == k21 * b1) && (k12 * b2 == k22 * b1) && (k13 * b2 == k23 * b1)
+    approximate(k11 * b2, k21 * b1) &&
+    approximate(k12 * b2, k22 * b1) &&
+    approximate(k13 * b2, k23 * b1)
 }
 
 pub fn calc_point_d(p1: &Point, p2: &Point) -> f64 {
@@ -239,7 +252,6 @@ pub fn calc_line_d(ln1: &Line, ln2: &Line) -> f64 {
 
 pub fn calc_point_plane_d(p: &Point, pn: &Plane) -> f64 {
     let (x_p, y_p, z_p) = p.pos();
-    let (x_p, y_p, z_p) = p.pos();
     let (k1 ,k2, k3, b) = pn.fn_args();
     (k1*x_p+k2*y_p+k3*z_p-b).abs()/(k1.powi(2)+k2.powi(2)+k3.powi(2)).sqrt()
 }
@@ -277,6 +289,7 @@ pub fn calc_line_angle(ln1: &Line, ln2: &Line) -> f64 {
 pub fn calc_line_plane_angle(ln: &Line, pn: &Plane) -> f64 {
     let vec1 = ln.get_direction_vec();
     let vec2 = pn.get_normal_vec();
+    println!("{} {}", vec1, vec2);
     ((&vec1 * &vec2).abs() / (vec1.len() * vec2.len())).asin()
 }
 
@@ -307,6 +320,7 @@ pub fn calc_line_intersection(ln1: &Line, ln2: &Line) -> Result<Point, ()> {
         Ok(Point::new(x1, y, z))
     } else {Err(())}
 }
+
 pub fn calc_line_plane_intersection(ln: &Line, pn: &Plane) -> Result<Point, ()> {
     let k11 = ln.fn_args()[0][0];
     let k12 = ln.fn_args()[0][1];
@@ -335,6 +349,7 @@ pub fn calc_line_plane_intersection(ln: &Line, pn: &Plane) -> Result<Point, ()> 
         Err(())
     }
 }
+
 pub fn calc_plane_intersection(pn1: &Plane, pn2: &Plane) -> Result<Line, ()> {
     let (k11 ,k12, k13, b1) = pn1.fn_args();
     let (k21 ,k22, k23, b2) = pn2.fn_args();

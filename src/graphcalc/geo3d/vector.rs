@@ -91,3 +91,9 @@ impl ops::Rem for &SpaceVector {
         }
     }
 }
+
+impl PartialEq<SpaceVector> for SpaceVector {
+    fn eq(&self, other: &SpaceVector) -> bool {
+        self.x == other.x && self.y == other.y && self.z == other.z
+    }
+}

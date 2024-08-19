@@ -1,3 +1,5 @@
+use std::fmt;
+
 use super::tool::*;
 use super::tool::feature::*;
 use super::vector::SpaceVector;
@@ -15,6 +17,12 @@ impl Point {
     }
     pub fn pos(&self) -> (f64, f64, f64) {
         (self.x, self.y ,self.z)
+    }
+}
+
+impl fmt::Display for Point {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "<Point ({}, {}, {})>", self.x, self.y, self.z)
     }
 }
 
@@ -106,6 +114,12 @@ impl Line {
         let k22 = self.fn_args.1.1;
         // let ((k11, k12, _), (k21, k22, _)) = self.fn_args();
         SpaceVector::new(-k11*k21, k12*k21, k11*k22)
+    }
+}
+
+impl fmt::Display for Line {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{:?}", self.fn_args)
     }
 }
 
@@ -203,7 +217,7 @@ pub struct Plane {
 impl Plane {
     /// k1 * x + k2 * y + k3 * z = b
     pub fn new(k1: f64, k2: f64, k3: f64, b: f64) -> Result<Self, ()> {
-        if k1 == 0.0 && k2 == 0.0 && k2 == 0.0 {
+        if k1 == 0.0 && k2 == 0.0 && k3 == 0.0 {
             Err(())
         } else {
             Ok(Self{func_args: (k1, k2, k3, b)})
@@ -223,6 +237,51 @@ impl Plane {
 
     pub fn get_normal_vec(&self) -> SpaceVector {
         SpaceVector::new(self.func_args.0, self.func_args.1, self.func_args.2)
+    }
+}
+
+impl fmt::Display for Plane {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let (k1, k2, k3, b) = self.fn_args();
+        if k1 == 0.0 {
+            write!(f, "<Plane {{(x, y, z)|").unwrap();
+        } else if k1 == 1.0 {
+            write!(f, "<Plane {{(x, y, z)|x").unwrap();
+        } else if k1 == -1.0 {
+            write!(f, "<Plane {{(x, y, z)|-x").unwrap();
+        } else {
+            write!(f, "<Plane {{(x, y, z)|{k1}x").unwrap();
+        }
+
+        if k2 > 0.0 {
+            if k2 == 1.0 {
+                write!(f, "+y").unwrap();
+            } else {
+                write!(f, "+{k2}y").unwrap();
+            }
+        } else if k2 < 0.0 {
+            if k2 == -1.0 {
+                write!(f, "-y").unwrap();
+            } else {
+                write!(f, "{k2}y").unwrap();
+            }
+        } else {}
+
+        if k3 > 0.0 {
+            if k3 == 1.0 {
+                write!(f, "+z={b}}}>")
+            } else {
+                write!(f, "+{k3}z={b}}}>")
+            }
+        } else if k3 < 0.0 {
+            if k3 == -1.0 {
+                write!(f, "-z={b}}}>")
+            } else {
+                write!(f, "{k3}z={b}}}>")
+            }
+        } else {
+            write!(f, "={b}}}>")
+        }
     }
 }
 
