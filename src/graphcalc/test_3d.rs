@@ -6,7 +6,7 @@ use feature::Superposition;
 use super::geo3d::tool::*;
 use crate::{p, ln, pn, vector};
 
-const ACCURENCY: f64 = 1e-8;
+const ACCURACY: f64 = 1e-8;
 
 pub fn test_main() {
     test_vec_calc();
@@ -93,19 +93,19 @@ fn test_calc_d() {
 
     let ln2 = ln!((1.0 ,0.0 ,1.0), (0.0, 2.0, 1.0)).unwrap();
     let ln3 = ln!((0.0, 0.0, 0.0), (1.0, 2.0, 0.0)).unwrap();
-    assert!((calc_line_d(&ln2, &ln3) - 1.0).abs() < ACCURENCY);
+    assert!((calc_line_d(&ln2, &ln3) - 1.0).abs() < ACCURACY);
 
     let p2 = p!(1.0, 1.0, 1.0);
     let pn1 = pn!((1.0 ,0.0, 0.0), (0.0, 1.0, 0.0), (0.0, 0.0, 1.0)).unwrap();
-    assert!((calc_point_plane_d(&p2, &pn1) - 2.0*3.0_f64.sqrt()/3.0).abs() < ACCURENCY);
+    assert!((calc_point_plane_d(&p2, &pn1) - 2.0*3.0_f64.sqrt()/3.0).abs() < ACCURACY);
 
     let ln4 = ln!((1.0 ,1.0, 0.0), (0.0, 2.0, 1.0)).unwrap();
     let pn2 = pn!((1.0, 0.0, 0.0), (0.0, 1.0, 1.0), (0.0, 2.0, 0.0)).unwrap();
-    assert!((calc_line_plane_d(&ln4, &pn2).unwrap() - 0.4082482904639).abs() < ACCURENCY);
+    assert!((calc_line_plane_d(&ln4, &pn2).unwrap() - 0.4082482904639).abs() < ACCURACY);
 
     let pn3 = pn!((1.0, 1.0, 0.0), (1.0, 0.0, 1.0), (0.0, 1.0, 1.0)).unwrap();
     let pn4 = pn!((1.0, 1.0, 1.0), (1.0, 2.0, 0.0), (0.0, 2.0, 1.0)).unwrap();
-    assert!((calc_plane_d(&pn3, &pn4).unwrap() - 3.0_f64.sqrt()/3.0).abs() < ACCURENCY);
+    assert!((calc_plane_d(&pn3, &pn4).unwrap() - 3.0_f64.sqrt()/3.0).abs() < ACCURACY);
 }
 
 fn test_calc_angle() {

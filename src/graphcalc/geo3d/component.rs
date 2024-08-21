@@ -67,7 +67,7 @@ impl CalcDistance<Plane, f64> for Point {
 ///     | k11 * y + k12 * x = b1
 ///     | k21 * z + k22 * x = b2
 pub struct Line {
-    fn_args: ((f64, f64, f64), (f64, f64, f64))
+    fn_args: ((f64, f64, f64, f64), (f64, f64, f64, f64))
 }
 
 
@@ -81,14 +81,14 @@ impl Line {
                 if k21 == 0.0 && k22 == 0.0 {
                     return Err(());
                 } else {
-                    return Ok(Self{fn_args: ((k11, k12, b1), (k21, k22, b2))});
+                    return Ok(Self{fn_args: ((k11, k12, 0.0, b1), (k21, 0.0, k22, b2))});
                 }
             }
         } else if !(k11 == 0.0 && k21 == 0.0) {
             if k21 == 0.0 && k22 == 0.0 && b2 != 0.0 {
                 return Err(());
             } else {
-                return Ok(Self{fn_args: ((k11, k12, b1), (k21, k22, b2))});
+                return Ok(Self{fn_args: ((k11, k12, 0.0, b1), (k21, 0.0, k22, b2))});
             }
         } else  {
             return Err(());
@@ -102,17 +102,12 @@ impl Line {
         }
     }
 
-    pub fn fn_args(&self) -> [[f64; 3]; 2] {  // TODO
-        let ((k11, k12, b1), (k21, k22, b2)) = self.fn_args;
-        [[k11, k12, b1], [k21, k22, b2]]
+    pub fn fn_args(&self) -> ((f64, f64, f64, f64), (f64, f64, f64, f64)) {  // TODO
+        self.fn_args
     }
 
     pub fn get_direction_vec(&self) -> SpaceVector {  // TODO
-        let k11 = self.fn_args.0.0;
-        let k12 = self.fn_args.0.1;
-        let k21 = self.fn_args.1.0;
-        let k22 = self.fn_args.1.1;
-        // let ((k11, k12, _), (k21, k22, _)) = self.fn_args();
+        let ((k11, k12, k13, _), (k21, k22, k23, _)) = self.fn_args();
         SpaceVector::new(-k11*k21, k12*k21, k11*k22)
     }
 }
