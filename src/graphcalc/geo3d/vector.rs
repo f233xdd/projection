@@ -1,6 +1,7 @@
 use std::{fmt, ops};
 
 use super::component::{Line, Plane, Point};
+use super::super::algebra::calc::approximate;
 
 pub struct SpaceVector{x: f64, y: f64, z: f64}
 
@@ -16,10 +17,12 @@ impl SpaceVector {
     }
     pub fn to_line(&self, p: &Point) -> Result<Line, ()> {
         let (x_p, y_p, z_p) = p.pos();
-        match Line::new(self.x, -self.y, self.x*y_p - self.y*x_p,
-                        self.x, -self.z, self.x*z_p - self.z*x_p) {
-            Ok(ln) => {Ok(ln)}
-            Err(()) => {Err(())}
+        if !approximate(self.x, 0.0) {
+            Line::new(self.y, -self.x, 0.0, self.y*x_p - self.x*y_p,
+                    self.z, 0.0, -self.x, self.z*x_p - self.x*z_p)
+        } else {
+            Line::new(0.0, self.z, -self.y, self.z*y_p-self.y*z_p,
+                    1.0, 0.0, 0.0, x_p)
         }
     }
     pub fn to_plane(&self, p: &Point) -> Result<Plane, ()> {
@@ -44,10 +47,30 @@ impl ops::Add for &SpaceVector {
     }
 }
 
+impl ops::Add for SpaceVector {
+    type Output = SpaceVector;
+    fn add(mut self, other: Self) -> Self::Output {
+        self.x = self.x + other.x;
+        self.y = self.y + other.y;
+        self.z = self.z + other.z;
+        self
+    }
+}
+
 impl ops::Sub for &SpaceVector {
     type Output = SpaceVector;
     fn sub(self, other: Self) -> Self::Output {
         SpaceVector{x: self.x - other.x, y: self.y - other.y, z: self.z - other.z}
+    }
+}
+
+impl ops::Sub for SpaceVector {
+    type Output = SpaceVector;
+    fn sub(mut self, other: Self) -> Self::Output {
+        self.x = self.x - other.x;
+        self.y = self.y - other.y;
+        self.z = self.z - other.z;
+        self
     }
 }
 
@@ -58,10 +81,30 @@ impl ops::Neg for &SpaceVector {
     }
 }
 
+impl ops::Neg for SpaceVector {
+    type Output = SpaceVector;
+    fn neg(mut self) -> Self::Output {
+        self.x = -self.x;
+        self.y = -self.y;
+        self.z = -self.z;
+        self
+    }
+}
+
 impl ops::Mul<f64> for &SpaceVector {
     type Output = SpaceVector;
     fn mul(self, other: f64) -> Self::Output {
         SpaceVector{x: self.x * other, y: self.y * other, z: self.z * other}
+    }
+}
+
+impl ops::Mul<f64> for SpaceVector {
+    type Output = SpaceVector;
+    fn mul(mut self, other: f64) -> Self::Output {
+        self.x = self.x * other;
+        self.y = self.y * other;
+        self.z = self.z * other;
+        self
     }
 }
 
@@ -73,10 +116,27 @@ impl ops::Mul<&SpaceVector> for &SpaceVector {
     }
 }
 
+impl ops::Mul<SpaceVector> for SpaceVector {
+    type Output = f64;
+    fn mul<'a>(self, other: SpaceVector) -> Self::Output {
+        self.x * other.x + self.y * other.y + self.z * other.z
+    }
+}
+
 impl ops::Div<f64> for &SpaceVector {
     type Output = SpaceVector;
     fn div(self, other: f64) -> Self::Output {
         SpaceVector{x: self.x / other, y: self.y / other, z: self.z / other}
+    }
+}
+
+impl ops::Div<f64> for SpaceVector {
+    type Output = SpaceVector;
+    fn div(mut self, other: f64) -> Self::Output {
+        self.x = self.x / other;
+        self.y = self.y / other;
+        self.z = self.z / other;
+        self
     }
 }
 
@@ -89,6 +149,16 @@ impl ops::Rem for &SpaceVector {
             y: -self.x*other.z+self.z*other.x,
             z: self.x*other.y-self.y*other.x,
         }
+    }
+}
+
+impl ops::Rem for SpaceVector {
+    type Output = SpaceVector;
+    fn rem(mut self, other: Self) -> Self::Output {
+        self.x = self.y*other.z-self.z*other.y;
+        self.y = -self.x*other.z+self.z*other.x;
+        self.z = self.x*other.y-self.y*other.x;
+        self
     }
 }
 

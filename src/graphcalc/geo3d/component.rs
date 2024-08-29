@@ -1,5 +1,7 @@
 use std::fmt;
 
+use crate::graphcalc::algebra::calc::approximate;
+
 use super::tool::*;
 use super::tool::feature::*;
 use super::vector::SpaceVector;
@@ -64,34 +66,20 @@ impl CalcDistance<Plane, f64> for Point {
 
 /// function sample:
 /// 
-///     | k11 * y + k12 * x = b1
-///     | k21 * z + k22 * x = b2
+///     | k11 * x + k12 * y + k13 * z = b1
+///     | k21 * x + k22 * y + k23 * z = b2
 pub struct Line {
     fn_args: ((f64, f64, f64, f64), (f64, f64, f64, f64))
 }
 
 
 impl Line {
-    pub fn new(k11: f64, k12: f64, b1: f64,
-                k21: f64, k22: f64, b2: f64) -> Result<Self, ()> {
-        if k11 == 0.0 && k12 == 0.0 {
-            if b1 != 0.0 {
-                return Err(());
-            } else {
-                if k21 == 0.0 && k22 == 0.0 {
-                    return Err(());
-                } else {
-                    return Ok(Self{fn_args: ((k11, k12, 0.0, b1), (k21, 0.0, k22, b2))});
-                }
-            }
-        } else if !(k11 == 0.0 && k21 == 0.0) {
-            if k21 == 0.0 && k22 == 0.0 && b2 != 0.0 {
-                return Err(());
-            } else {
-                return Ok(Self{fn_args: ((k11, k12, 0.0, b1), (k21, 0.0, k22, b2))});
-            }
-        } else  {
-            return Err(());
+    pub fn new(k11: f64, k12: f64, k13: f64, b1: f64,
+                k21: f64, k22: f64, k23: f64, b2: f64) -> Result<Self, ()> {
+        if !approximate(k11*k22, k12*k21) || !approximate(k11*k23, k13*k21) {
+            Ok(Line {fn_args: ((k11, k12, k13, b1), (k21, k22, k23, b2))})
+        } else {
+            Err(())
         }
     }
 
@@ -102,19 +90,58 @@ impl Line {
         }
     }
 
-    pub fn fn_args(&self) -> ((f64, f64, f64, f64), (f64, f64, f64, f64)) {  // TODO
+    pub fn fn_args(&self) -> ((f64, f64, f64, f64), (f64, f64, f64, f64)) {
         self.fn_args
     }
 
-    pub fn get_direction_vec(&self) -> SpaceVector {  // TODO
+    pub fn get_direction_vec(&self) -> SpaceVector {
         let ((k11, k12, k13, _), (k21, k22, k23, _)) = self.fn_args();
-        SpaceVector::new(-k11*k21, k12*k21, k11*k22)
+        SpaceVector::new(k13*k22-k12*k23, k11*k23-k13*k21, k12*k21-k11*k22)
     }
 }
 
 impl fmt::Display for Line {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{:?}", self.fn_args)
+        let ((k11, k12, k13, b1), (k21, k22, k23, b2)) = self.fn_args;
+        let mut add_comma = true;
+
+        write!(f, "<Line {{(x, y)|").unwrap();
+        for (k1, k2, k3, b) in [(k11, k12, k13, b1), (k21, k22, k23, b2)] {
+            if approximate(k1, 1.0) {
+                write!(f, "x").unwrap();
+            } else if approximate(k1, -1.0) {
+                write!(f, "-x").unwrap();
+            } else if approximate(k1, 0.0) {} else {
+                write!(f, "{k1}x").unwrap();
+            }
+
+            if approximate(k2, 1.0) {
+                write!(f, "+y").unwrap();
+            } else if approximate(k2, -1.0) {
+                write!(f, "-y").unwrap();
+            } else if k2 > 0.0 {
+                write!(f, "+{k2}y").unwrap();
+            } else if k2 < 0.0 {
+                write!(f, "{k2}y").unwrap();
+            } else {}
+
+            if approximate(k3, 1.0) {
+                write!(f, "+z").unwrap();
+            } else if approximate(k3, -1.0) {
+                write!(f, "-z").unwrap();
+            } else if k3 > 0.0 {
+                write!(f, "+{k3}z").unwrap();
+            } else if k3 < 0.0 {
+                write!(f, "{k3}z").unwrap();
+            } else {}
+            write!(f, "={b}").unwrap();
+
+            if add_comma {
+                write!(f, ", ").unwrap();
+                add_comma = false;
+            } else {}
+        }
+        write!(f, "}}>")
     }
 }
 

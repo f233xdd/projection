@@ -86,7 +86,7 @@ impl Line {
 
 impl fmt::Display for Line {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let (k1, k2, b) = self.fn_args();
+        let (k1, k2, b) = self.fn_args;
         write!(f, "<Line {{(x, y)|").unwrap();
 
         if k1 == 1.0 {

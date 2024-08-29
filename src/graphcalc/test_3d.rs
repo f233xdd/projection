@@ -31,7 +31,7 @@ fn test_vec_calc() {
 
 fn test_func_calc() {
     let ln = ln!((1.0, 0.0, 1.0), (0.0, 1.0, 0.0)).unwrap();
-    let ln1 = ln!((k11: -1.0, k12: -1.0, b1: -1.0), (k21: -1.0, k22: 1.0, b2: 0.0)).unwrap();
+    let ln1 = ln!((k11: -1.0, k12: -1.0, k13: 0.0, b1: -1.0), (k21: -1.0, k22: 0.0, k23: 1.0, b2: 0.0)).unwrap();
     assert!(ln.is_superposition(&ln1));
     assert!(pn!((0.0, 0.0, 0.0), (1.0, 0.0, 1.0), (0.0, 1.0, 1.0)).unwrap().is_superposition(&pn!(k1:1.0, k2:1.0, k3:-1.0, b:0.0).unwrap()));
 }

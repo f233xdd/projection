@@ -45,8 +45,11 @@ macro_rules! ln {
             &$crate::graphcalc::geo3d::Point::new($x2, $y2, $z2)
         )
     };
-    ((k11: $k11:expr, k12: $k12:expr, b1: $b1:expr), (k21: $k21:expr, k22: $k22:expr, b2: $b2:expr)) => {
-        $crate::graphcalc::geo3d::Line::new($k11, $k12, $b1, $k21, $k22, $b2)
+    (
+        (k11: $k11:expr, k12: $k12:expr, k13: $k13:expr, b1: $b1:expr), 
+        (k21: $k21:expr, k22: $k22:expr, k23: $k23:expr, b2: $b2:expr)
+    ) => {
+        $crate::graphcalc::geo3d::Line::new($k11, $k12, $k13, $b1, $k21, $k22, $k23, $b2)
     }
 }
 
