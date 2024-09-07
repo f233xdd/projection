@@ -4,4 +4,18 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-# decimal = "2.1.0"
+
+[[test]]
+name = "test_2d"
+path = "tests/test_2d.rs"
+doctest = false
+
+[[test]]
+name = "test_3d"
+path = "tests/test_3d.rs"
+doctest = false
+
+[[test]]
+name = "test_main"
+path = "src/main.rs"
+doctest = false

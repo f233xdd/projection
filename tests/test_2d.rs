@@ -2,13 +2,13 @@
 // I'd appreciate my friend Equar for his great effor to those test cases.
 // All the cases given were calculated by him.
 // Again, thank him veru much.
-// However, it's a pity that he can't write code by Rust, so I did all these things.
+// However, it's a pity that he can't write code by Rust, so I did all these things
 use std::f64::consts::PI;
 
-use super::geo2d::tool::*;
-use crate::{p, ln};
+use projection::graphcalc::geo2d::tool::*;
+use projection::{p, ln};
 
-
+#[test]
 pub fn test_main() {
     test_calc_line_func();
     test_is_in();

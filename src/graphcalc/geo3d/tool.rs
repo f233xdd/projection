@@ -4,13 +4,13 @@ use super::super::algebra::calc::approximate;
 
 /// function sample:
 /// 
-///     | k11 * x + k12 * y + k13 * z = b1
-///     | k21 * x + k22 * y + k23 * z = b2
+/// k11 * x + k12 * y + k13 * z = b1
+/// k21 * x + k22 * y + k23 * z = b2
 pub fn calc_line_fn(p1: &Point, p2: &Point) -> Result<((f64, f64, f64, f64), (f64, f64, f64, f64)), ()> {
     let (x_p1, y_p1, z_p1) = p1.pos();
     let (x_p2, y_p2, z_p2) = p2.pos();
     if (x_p2 != x_p1) || (y_p2 != y_p1) || (z_p2 != z_p1) {
-        if !approximate(x_p1, x_p1){
+        if !approximate(x_p1, x_p2) {
             Ok(((y_p1 - y_p2, x_p2 - x_p1, 0.0, x_p2 * y_p1 - x_p1 * y_p2), 
                 (z_p1 - z_p2, 0.0, x_p2 - x_p1, x_p2 * z_p1 - x_p1 * z_p2)))
         } else {
@@ -134,7 +134,16 @@ pub fn point_is_superposition(p1: &Point, p2: &Point) -> bool {
 
 pub fn line_is_superposition(ln1: &Line, ln2: &Line) -> bool {
     let ((k111, k112, k113, b11), (k121, k122, k123, b12)) = ln1.fn_args();
-    let ((k211, k212, k213, b21), (k221, k222, k223, b22)) = ln2.fn_args();
+    let ((k211, k212, k213, b21), (k221, k222, k223, _)) = ln2.fn_args();
+    let (a, b, c, d) = (
+        approximate((k113*k122-k112*k123)*(k211*k223-k213*k221), (k213*k222-k212*k223)*(k111*k123-k113*k121)),
+        approximate((k111*k123-k113*k121)*(k212*k221-k211*k222), (k211*k223-k213*k221)*(k112*k121-k111*k122)),
+        approximate(b11*(k211*k122-k212*k121)+b12*(k111*k212-k211*k112), b21*(k111*k122-k112*k121)),
+        approximate(b11*(k221*k122-k121*k222)+b12*(k111*k222-k112*k221), b21*(k111*k122-k112*k121))
+    );
+    println!("{a} {b} {c} {d}");
+    println!("{}", b11*(k221*k122-k121*k222)+b12*(k111*k222-k112*k221));
+    println!("{}", b21*(k111*k122-k112*k121));
     approximate((k113*k122-k112*k123)*(k211*k223-k213*k221), (k213*k222-k212*k223)*(k111*k123-k113*k121)) &&
     approximate((k111*k123-k113*k121)*(k212*k221-k211*k222), (k211*k223-k213*k221)*(k112*k121-k111*k122)) &&
     (approximate(b11*(k211*k122-k212*k121)+b12*(k111*k212-k211*k112), b21*(k111*k122-k112*k121)) &&
@@ -155,19 +164,44 @@ pub fn calc_point_d(p1: &Point, p2: &Point) -> f64 {
     ((x_p1 - x_p2).powi(2) + (y_p1 - y_p2).powi(2) + (z_p1 - z_p2).powi(2)).sqrt()
 }
 
-pub fn calc_point_line_d(p: &Point, ln: &Line) -> f64 { // TODO
+pub fn calc_point_line_d(p: &Point, ln: &Line) -> f64 {
     let (x_p, y_p, z_p) = p.pos();
     let ((k11, k12, k13, b1), (k21, k22, k23, b2)) = ln.fn_args();
-    (((k11*k22*y_p-k12*k21*z_p-b1*k22+b2*k12).powi(2) + 
-    ((k12*x_p+k11*y_p-b1)*k21).powi(2) + ((k22*x_p+k21*z_p-b2)*k11).powi(2))/
-    ((k11*k12).powi(2)+(k12*k21).powi(2)+(k11*k22).powi(2))).sqrt()
+    let (a, b, c, d1, d2, d3) = (
+        k13*k22-k12*k23,
+        k11*k23-k13*k21,
+        k12*k21-k11*k22,
+        k21*b1-k11*b2,
+        k22*b1-k12*b2,
+        k23*b1-k13*b2,
+    );
+    (((b*x_p-a*y_p-d3).powi(2)+(a*z_p-c*x_p-d2).powi(2)+(c*y_p-b*z_p-d1).powi(2))/
+    (a.powi(2)+b.powi(2)+c.powi(2))).sqrt()
 }
 
-pub fn calc_line_d(ln1: &Line, ln2: &Line) -> f64 { // TODO
+pub fn calc_line_d(ln1: &Line, ln2: &Line) -> f64 {
     let ((k111, k112, k113, b11), (k121, k122, k123, b12)) = ln1.fn_args();
     let ((k211, k212, k213, b21), (k221, k222, k223, b22)) = ln2.fn_args();
     if line_is_parallel(ln1, ln2) {
-        f64::NAN
+        let (a1, b1, c1, a2, b2, c2) = (
+            k113*k122-k112*k123,
+            k111*k123-k113*k121,
+            k112*k121-k111*k122,
+            k213*k222-k212*k223,
+            k211*k223-k213*k221,
+            k212*k221-k211*k222,
+        );
+        let (lbd, d11, d12, d13, d21, d22, d23) = (
+            (a1+b1+c1)/(a2+b2+c2),
+            k121*b11-k111*b12,
+            k122*b11-k112*b12,
+            k123*b11-k113*b12,
+            k221*b21-k211*b22,
+            k222*b21-k212*b22,
+            k223*b21-k213*b22,
+        );
+        (lbd*d21-d11).powi(2)+(lbd*d22-d12).powi(2)+(lbd*d23-d13).powi(2)/
+        (a1.powi(2)+b1.powi(2)+c1.powi(2))
     } else {
         let (a1, a2, b1, b2, c1, c2) = (
             k113*k122-k112*k123,
@@ -227,32 +261,35 @@ pub fn calc_plane_d(pn1: &Plane, pn2: &Plane) -> Result<f64, ()> {
 pub fn calc_line_angle(ln1: &Line, ln2: &Line) -> f64 {
     let vec1 = ln1.get_direction_vec();
     let vec2 = ln2.get_direction_vec(); 
-    ((vec1 * vec2).abs() / (vec1.len() * vec2.len())).acos()
+    ((&vec1 * &vec2).abs() / (vec1.len() * vec2.len())).acos()
 }
 
 pub fn calc_line_plane_angle(ln: &Line, pn: &Plane) -> f64 {
     let vec1 = ln.get_direction_vec();
     let vec2 = pn.get_normal_vec();
     println!("{} {}", vec1, vec2);
-    ((vec1 * vec2).abs() / (vec1.len() * vec2.len())).asin()
+    ((&vec1 * &vec2).abs() / (vec1.len() * vec2.len())).asin()
 }
 
 pub fn calc_plane_angle(pn1: &Plane, pn2: &Plane) -> f64 {
     let vec1 = pn1.get_normal_vec();
     let vec2 = pn2.get_normal_vec();
-    ((vec1 * vec2).abs() / (vec1.len() * vec2.len())).acos()
+    ((&vec1 * &vec2).abs() / (vec1.len() * vec2.len())).acos()
 }
 
-pub fn calc_line_intersection(ln1: &Line, ln2: &Line) -> Result<Point, ()> { // TODO
+pub fn calc_line_intersection(ln1: &Line, ln2: &Line) -> Result<Point, ()> {
     let ((k111, k112, k113, b11), (k121, k122, k123, b12)) = ln1.fn_args();
     let ((k211, k212, k213, b21), (k221, k222, k223, b22)) = ln2.fn_args();
-    let a = (k111*k123-k113*k121)*(k212*k223-k213*k222)-(k211*k223-k213*k221)*(k112*k123-k113*k122);
-    let (x, y, z): (f64, f64, f64);
-    if !approximate(a, 0.0) {
-        x = ((k123*b11-k112*b12)*(k212*k223-k213*k222)-(k223*b21-k213*b22)*(k112*k123-k113*k122))/a;
-        y = ((k123*b11-k112*b12)*(k211*k223-k213*k221)-(k223*b21-k213*b22)*(k111*k123-k113*k121))/-a;
-        z = 
-    }
+    if line_is_coplanar(ln1, ln2) && !line_is_parallel(ln1, ln2) {
+        let a = (k111*k123-k113*k121)*(k212*k223-k213*k222)-(k211*k223-k213*k221)*(k112*k123-k113*k122);
+        let (x, y, z) = (
+            ((k123*b11-k113*b12)*(k212*k223-k213*k222)-(k223*b21-k213*b22)*(k112*k123-k113*k122))/a,
+            ((k123*b11-k113*b12)*(k211*k223-k213*k221)-(k223*b21-k213*b22)*(k111*k123-k113*k121))/-a,
+            ((k121*b11-k111*b12)*(k213*k222-k212*k223)+(k122*b11-k112*b12)*(k211*k223-k213*k221)+
+            (k223*b21-k213*b22)*(k112*k121-k111*k122))/a,
+        );
+        Ok(Point::new(x, y, z))
+    } else {Err(())}
 }
 
 pub fn calc_line_plane_intersection(ln: &Line, pn: &Plane) -> Result<Point, ()> {

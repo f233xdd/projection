@@ -4,6 +4,7 @@ use std::fmt;
 use super::tool::*;
 use super::tool::feature::*;
 use super::vector::PlaneVector;
+use super::err;
 
 pub struct Point {
     x: f64,
@@ -50,9 +51,8 @@ impl CalcDistance<Line, f64> for Point {
 }
 
 
-/// function sample:
-/// 
-///     k1 * x + k2 * y = b
+
+/// k1 * x + k2 * y = b
 pub struct Line {
     fn_args: (f64, f64, f64)
 }
@@ -60,18 +60,18 @@ pub struct Line {
 
 impl Line {
     /// k1 * x + k2 * y = b
-    pub fn new(k1: f64, k2: f64, b: f64) -> Result<Line, ()> {
+    pub fn new(k1: f64, k2: f64, b: f64) -> Result<Line, err::InvalidFnArgError> {
         if k1 == 0.0 && k2 == 0.0{
-            Err(())
+            Err(err::InvalidFnArgError())
         } else {
             Ok(Self{fn_args: (k1, k2, b)})
         }
     } 
 
-    pub fn from(p1: &Point, p2: &Point) -> Result<Line, ()> {
+    pub fn from(p1: &Point, p2: &Point) -> Result<Line, err::InterpositionError> {
         match calc_line_fn(p1, p2) {
             Ok(func_args) => {Ok(Line{fn_args: func_args})}
-            Err(()) => {Err(())}
+            Err(e) => {Err(e)}
         }
     }
 
@@ -141,8 +141,8 @@ impl CalcDistance<Point, f64> for Line {
     }
 }
 
-impl CalcDistance<Line, Result<f64, ()>> for Line {
-    fn calc_d(&self, cpt: &Line) -> Result<f64, ()> {
+impl CalcDistance<Line, Result<f64, err::NotParallelError>> for Line {
+    fn calc_d(&self, cpt: &Line) -> Result<f64, err::NotParallelError> {
         calc_line_d(self, cpt)
     }
 }
@@ -154,7 +154,7 @@ impl CalcAngle<Line> for Line {
 }
 
 impl CalcIntersection<Line> for Line {
-    fn calc_intersection(&self, cpt: &Line) -> Result<Point, ()> {
+    fn calc_intersection(&self, cpt: &Line) -> Result<Point, err::ParallelError> {
         calc_intersection(self, cpt)
     }
 }

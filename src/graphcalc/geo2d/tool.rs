@@ -1,19 +1,19 @@
 // 2D part
-use super::{component::*, PlaneVector};
+use super::{component::*, PlaneVector, err};
 use super::super::algebra::calc::approximate;
 
-pub fn vec_to_line(vec: &PlaneVector, p: &Point) -> Result<Line, ()> {
+pub fn vec_to_line(vec: &PlaneVector, p: &Point) -> Result<Line, err::InvalidFnArgError> {
     vec.to_line(p)
 }
 
 /// k1 * x + k2 * y = b
-pub fn calc_line_fn(p1: &Point, p2: &Point) -> Result<(f64, f64, f64), ()> {
+pub fn calc_line_fn(p1: &Point, p2: &Point) -> Result<(f64, f64, f64), err::InterpositionError> {
     let (x_p1, y_p1) = p1.pos();
     let (x_p2, y_p2) = p2.pos();
     if (x_p2 != x_p1) || (y_p2 != y_p1) {
         return Ok((y_p1 - y_p2, x_p2 - x_p1, x_p2 * y_p1 - x_p1 * y_p2));
     } else {
-        return Err(());
+        return Err(err::InterpositionError());
     }
 }
 
@@ -64,13 +64,13 @@ pub fn calc_point_line_d(p: &Point, ln: &Line) -> f64 {
     (k1 * x_p + k2 * y_p - b).abs() / (k1.powi(2) + k2.powi(2)).sqrt()
 }
 
-pub fn calc_line_d(ln1: &Line, ln2: &Line) -> Result<f64, ()> {
+pub fn calc_line_d(ln1: &Line, ln2: &Line) -> Result<f64, err::NotParallelError> {
     let (k11, k12, b1) = ln1.fn_args();
     let (k21, k22, b2) = ln2.fn_args();
     if is_parallel(ln1, ln2) {
         let k = if k11 != 0.0 {k21 / k11} else {k22 / k12};
         Ok((k * b1 - b2).abs() / (k21.powi(2) + k22.powi(2)).sqrt())
-    } else {Err(())}
+    } else {Err(err::NotParallelError())}
 }
 
 pub fn calc_angle(ln1: &Line, ln2: &Line) -> f64 {
@@ -79,7 +79,7 @@ pub fn calc_angle(ln1: &Line, ln2: &Line) -> f64 {
     ((&vec1 * &vec2).abs()/(vec1.len() * vec2.len())).acos()
 }
 
-pub fn calc_intersection(ln1: &Line, ln2: &Line) -> Result<Point, ()> {
+pub fn calc_intersection(ln1: &Line, ln2: &Line) -> Result<Point, err::ParallelError> {
     let (k11, k12, b1) = ln1.fn_args();
     let (k21, k22, b2) = ln2.fn_args();
     let v = k11 * k22 - k21 * k12;
@@ -87,10 +87,11 @@ pub fn calc_intersection(ln1: &Line, ln2: &Line) -> Result<Point, ()> {
         let x = (k21 * b1 - k12 * b2) / v;
         let y = (k12 * b1 - k11 * b2) / -v;
         Ok(Point::new(x, y))
-    } else {Err(())}
+    } else {Err(err::ParallelError())}
 }
 
 pub mod feature {
+    use super::err;
     use super::super::component::Point;
 
     pub trait Inclusion<T> {
@@ -118,6 +119,6 @@ pub mod feature {
     }
 
     pub trait CalcIntersection<T> {
-        fn calc_intersection(&self, cpt: &T) -> Result<Point, ()>;
+        fn calc_intersection(&self, cpt: &T) -> Result<Point, err::ParallelError>;
     }
 }

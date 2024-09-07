@@ -1,5 +1,6 @@
 use std::{ops, fmt};
 
+use super::err;
 use super::component::{Point, Line};
 use super::super::geo3d::SpaceVector;
 
@@ -18,7 +19,7 @@ impl PlaneVector {
     pub fn copy(&self) -> Self {
         PlaneVector{x: self.x, y: self.y}
     }
-    pub fn to_line(&self, p: &Point) -> Result<Line, ()> {
+    pub fn to_line(&self, p: &Point) -> Result<Line, err::InvalidFnArgError> {
         let (x_p, y_p) = p.pos();
         Line::new(-self.y, self.x, self.x * y_p - self.y * x_p)
     }

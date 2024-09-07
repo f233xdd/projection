@@ -64,15 +64,11 @@ impl CalcDistance<Plane, f64> for Point {
     }
 }
 
-/// function sample:
-/// 
-///     | k11 * x + k12 * y + k13 * z = b1
-///     | k21 * x + k22 * y + k23 * z = b2
+///  k11 * x + k12 * y + k13 * z = b1,
+///  k21 * x + k22 * y + k23 * z = b2
 pub struct Line {
     fn_args: ((f64, f64, f64, f64), (f64, f64, f64, f64))
 }
-
-
 impl Line {
     pub fn new(k11: f64, k12: f64, k13: f64, b1: f64,
                 k21: f64, k22: f64, k23: f64, b2: f64) -> Result<Self, ()> {
@@ -229,9 +225,7 @@ impl CalcIntersection<Plane, Result<Point, ()>> for Line {
     }
 }
 
-/// function sample:
-/// 
-///     k1 * x + k2 * y + k3 * z = b
+/// k1 * x + k2 * y + k3 * z = b
 pub struct Plane {
     func_args: (f64, f64, f64, f64)
 }
