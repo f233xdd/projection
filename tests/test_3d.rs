@@ -89,8 +89,8 @@ fn test_line_pos() {
 fn test_calc_d() {
     let p1 = p!(0.0, 1.0, 1.0);
     let ln1 = ln!((0.0, 0.0, 1.0), (1.0, 2.0, 0.0)).unwrap();
-    // println!("{} {}", calc_point_line_d(&p1, &ln1), 3.0_f64.sqrt()/3.0);
-    // assert!((calc_point_line_d(&p1, &ln1) - 3.0_f64.sqrt()/3.0).abs() < ACCURENCY);
+    println!("{} {}", calc_point_line_d(&p1, &ln1), 3.0_f64.sqrt()/3.0);
+    assert!((calc_point_line_d(&p1, &ln1) - 3.0_f64.sqrt()/3.0).abs() < ACCURACY);
 
     let ln2 = ln!((1.0 ,0.0 ,1.0), (0.0, 2.0, 1.0)).unwrap();
     let ln3 = ln!((0.0, 0.0, 0.0), (1.0, 2.0, 0.0)).unwrap();
