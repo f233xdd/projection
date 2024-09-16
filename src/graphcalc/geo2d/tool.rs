@@ -7,13 +7,13 @@ pub fn vec_to_line(vec: &PlaneVector, p: &Point) -> Result<Line, err::InvalidFnA
 }
 
 /// k1 * x + k2 * y = b
-pub fn calc_line_fn(p1: &Point, p2: &Point) -> Result<(f64, f64, f64), err::InterpositionError> {
+pub fn calc_line_fn(p1: &Point, p2: &Point) -> Result<(f64, f64, f64), err::SuperpositionError> {
     let (x_p1, y_p1) = p1.pos();
     let (x_p2, y_p2) = p2.pos();
     if (x_p2 != x_p1) || (y_p2 != y_p1) {
         return Ok((y_p1 - y_p2, x_p2 - x_p1, x_p2 * y_p1 - x_p1 * y_p2));
     } else {
-        return Err(err::InterpositionError());
+        return Err(err::SuperpositionError());
     }
 }
 

@@ -20,6 +20,8 @@ impl fmt::Display for NotParallelError {
 }
 impl error::Error for NotParallelError {}
 
+type IntersectError = NotParallelError;
+
 #[derive(Debug)]
 pub struct VerticalError();
 
@@ -61,14 +63,14 @@ impl fmt::Display for NotIncludedError {
 impl error::Error for NotIncludedError {}
 
 #[derive(Debug)]
-pub struct InterpositionError();
+pub struct SuperpositionError();
 
-impl fmt::Display for InterpositionError {
+impl fmt::Display for SuperpositionError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "InterpositionError")
     }
 }
-impl error::Error for InterpositionError {}
+impl error::Error for SuperpositionError {}
 
 #[derive(Debug)]
 pub enum PositionError {
@@ -78,7 +80,7 @@ pub enum PositionError {
     NotVertincalError(NotVertincalError),
     IncludedError(IncludedError),
     NotIncludedError(NotIncludedError),
-    InterpositionError(InterpositionError)
+    SuperpositionError(SuperpositionError)
 }
 
 impl fmt::Display for PositionError {
@@ -90,7 +92,7 @@ impl fmt::Display for PositionError {
             PositionError::NotVertincalError(ref e) => e.fmt(f),
             PositionError::IncludedError(ref e) => e.fmt(f),
             PositionError::NotIncludedError(ref e) => e.fmt(f),
-            PositionError::InterpositionError(ref e) => e.fmt(f)
+            PositionError::SuperpositionError(ref e) => e.fmt(f)
         }
     }
 }
@@ -104,7 +106,7 @@ impl error::Error for PositionError {
             PositionError::NotVertincalError(ref e) => Some(e),
             PositionError::IncludedError(ref e) => Some(e),
             PositionError::NotIncludedError(ref e) => Some(e),
-            PositionError::InterpositionError(ref e) => Some(e)
+            PositionError::SuperpositionError(ref e) => Some(e)
         }
     }
 }
@@ -139,9 +141,9 @@ impl From<NotIncludedError> for PositionError {
         PositionError::NotIncludedError(value)
     }
 }
-impl From<InterpositionError> for PositionError {
-    fn from(value: InterpositionError) -> Self {
-        PositionError::InterpositionError(value)
+impl From<SuperpositionError> for PositionError {
+    fn from(value: SuperpositionError) -> Self {
+        PositionError::SuperpositionError(value)
     }
 }
 

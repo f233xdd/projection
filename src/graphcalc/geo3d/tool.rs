@@ -68,12 +68,11 @@ pub fn line_is_in_plane(ln: &Line, pn: &Plane) -> bool {
 }
 
 pub fn line_is_parallel(ln1: &Line, ln2: &Line) -> bool {
-    let ((k111, k112, k113, b11), (k121, k122, k123, b12)) = ln1.fn_args();
-    let ((k211, k212, k213, b21), (k221, k222, k223, _)) = ln2.fn_args();
+    let ((k111, k112, k113, _), (k121, k122, k123, _)) = ln1.fn_args();
+    let ((k211, k212, k213, _), (k221, k222, k223, _)) = ln2.fn_args();
     approximate((k113*k122-k112*k123)*(k211*k223-k213*k221), (k213*k222-k212*k223)*(k111*k123-k113*k121)) &&
     approximate((k111*k123-k113*k121)*(k212*k221-k211*k222), (k211*k223-k213*k221)*(k112*k121-k111*k122)) &&
-    (!approximate(b11*(k211*k122-k212*k121)+b12*(k111*k212-k211*k112), b21*(k111*k122-k112*k121)) ||
-    !approximate(b11*(k221*k122-k121*k222)+b12*(k111*k222-k112*k221), b21*(k111*k122-k112*k121)))
+    !line_is_superposition(ln1, ln2)
 }
 
 
@@ -139,16 +138,13 @@ pub fn point_is_superposition(p1: &Point, p2: &Point) -> bool {
     approximate(z_p1, z_p2)
 }
 
-pub fn line_is_superposition(ln1: &Line, ln2: &Line) -> bool { // TODO
+pub fn line_is_superposition(ln1: &Line, ln2: &Line) -> bool {
     let ((a11, b11, c11, d11), (a12, b12, c12, d12)) = ln1.fn_args();
     let ((a21, b21, c21, d21), (a22, b22, c22, d22)) = ln2.fn_args();
-    line_is_parallel(ln1, ln2) && approximate(
-    a11*(b12*c21+b21*d12-b21*c12-b12*d21)+
-    a12*(b21*c11+b11*d21-b11*c21-b21*d11)+
-    a21*(b11*c12+b12*d11-b12*c11-b11*d12), 0.0) && approximate(
-        a11*(b12*c22+b21*d12-b21*c12-b12*d22)+
-    a12*(b22*c11+b11*d22-b11*c22-b22*d11)+
-    a22*(b11*c12+b12*d11-b12*c11-b11*d12), 0.0)
+    approximate((c11*b21-b11*c21)*(a21*c22-c21*a22), (c21*b22-b21*c22)*(a11*c21-c11*a21)) &&
+    approximate((a11*c21-c11*a21)*(b21*a22-a21*b22), (a21*c22-c21*a22)*(b11*a21-a11*b21)) &&
+    approximate(a21*((d11-c11)*b12-(d12-c12)*b11)-b21*((d11-c11)*a12-(d12-c12)*a11)+(c21-d21)*(a11*b12-a12*b11), 0.0) &&
+    approximate(a22*((d11-c11)*b12-(d12-c12)*b11)-b22*((d11-c11)*a12-(d12-c12)*a11)+(c22-d22)*(a11*b12-a12*b11), 0.0)
 }
 
 pub fn plane_is_superposition(pn1: &Plane, pn2: &Plane) -> bool {

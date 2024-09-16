@@ -68,7 +68,7 @@ impl Line {
         }
     } 
 
-    pub fn from(p1: &Point, p2: &Point) -> Result<Self, err::InterpositionError> {
+    pub fn from(p1: &Point, p2: &Point) -> Result<Self, err::SuperpositionError> {
         match calc_line_fn(p1, p2) {
             Ok(func_args) => {Ok(Self {fn_args: func_args})}
             Err(e) => {Err(e)}

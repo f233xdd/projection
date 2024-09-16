@@ -1,6 +1,7 @@
 // Author: Max
 use std::f64::consts::PI;
 
+use feature::Parallelism;
 use projection::graphcalc::geo3d::{tool::*, feature::Superposition};
 use projection::{p, ln, pn, vector};
 
