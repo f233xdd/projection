@@ -15,7 +15,7 @@ pub struct Point {
 
 impl Point {
     pub fn new(x: f64, y: f64, z: f64) -> Self {
-        Point{x, y, z}
+        Self {x, y, z}
     }
     pub fn pos(&self) -> (f64, f64, f64) {
         (self.x, self.y ,self.z)
@@ -73,7 +73,7 @@ impl Line {
     pub fn new(k11: f64, k12: f64, k13: f64, b1: f64,
                 k21: f64, k22: f64, k23: f64, b2: f64) -> Result<Self, ()> {
         if !approximate(k11*k22, k12*k21) || !approximate(k11*k23, k13*k21) {
-            Ok(Line {fn_args: ((k11, k12, k13, b1), (k21, k22, k23, b2))})
+            Ok(Self {fn_args: ((k11, k12, k13, b1), (k21, k22, k23, b2))})
         } else {
             Err(())
         }
@@ -81,7 +81,7 @@ impl Line {
 
     pub fn from(p1: &Point, p2: &Point) -> Result<Self, ()> {
         match calc_line_fn(p1, p2) {
-            Ok(func_args) => {Ok(Self{fn_args: func_args})}
+            Ok(func_args) => {Ok(Self {fn_args: func_args})}
             Err(()) => {Err(())}
         }
     }
@@ -100,33 +100,59 @@ impl fmt::Display for Line {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let ((k11, k12, k13, b1), (k21, k22, k23, b2)) = self.fn_args;
         let mut add_comma = true;
+        let mut no_front_var: bool;
 
         write!(f, "<Line {{(x, y)|").unwrap();
         for (k1, k2, k3, b) in [(k11, k12, k13, b1), (k21, k22, k23, b2)] {
             if approximate(k1, 1.0) {
                 write!(f, "x").unwrap();
+                no_front_var = false;
             } else if approximate(k1, -1.0) {
                 write!(f, "-x").unwrap();
-            } else if approximate(k1, 0.0) {} else {
+                no_front_var = false;
+            } else if approximate(k1, 0.0) {
+                no_front_var = true;
+            } else {
                 write!(f, "{k1}x").unwrap();
+                no_front_var = false;
             }
 
             if approximate(k2, 1.0) {
-                write!(f, "+y").unwrap();
+                if no_front_var {
+                    write!(f, "y").unwrap();
+                } else {
+                    write!(f, "+y").unwrap();
+                }
+                no_front_var = false;
             } else if approximate(k2, -1.0) {
                 write!(f, "-y").unwrap();
+                no_front_var = false;
             } else if k2 > 0.0 {
-                write!(f, "+{k2}y").unwrap();
+                if no_front_var {
+                    write!(f, "{k2}y").unwrap();
+                } else {
+                    write!(f, "+{k2}y").unwrap();
+                }
+                no_front_var = false;
             } else if k2 < 0.0 {
                 write!(f, "{k2}y").unwrap();
+                no_front_var = false;
             } else {}
 
             if approximate(k3, 1.0) {
-                write!(f, "+z").unwrap();
+                if no_front_var {
+                    write!(f, "z").unwrap();
+                } else {
+                    write!(f, "+z").unwrap();
+                }
             } else if approximate(k3, -1.0) {
                 write!(f, "-z").unwrap();
             } else if k3 > 0.0 {
-                write!(f, "+{k3}z").unwrap();
+                if no_front_var {
+                    write!(f, "{k3}z").unwrap();
+                } else {
+                    write!(f, "+{k3}z").unwrap();
+                }
             } else if k3 < 0.0 {
                 write!(f, "{k3}z").unwrap();
             } else {}
@@ -236,13 +262,13 @@ impl Plane {
         if k1 == 0.0 && k2 == 0.0 && k3 == 0.0 {
             Err(())
         } else {
-            Ok(Self{func_args: (k1, k2, k3, b)})
+            Ok(Self {func_args: (k1, k2, k3, b)})
         }
     }
 
     pub fn from(p1: &Point, p2: &Point, p3: &Point) -> Result<Self, ()>  {
         match calc_plane_fn(p1, p2, p3) {
-            Ok(fn_args) => {Ok(Self{func_args: fn_args})}
+            Ok(fn_args) => {Ok(Self {func_args: fn_args})}
             Err(()) => {Err(())}
         }
     }

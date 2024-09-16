@@ -10,14 +10,35 @@ pub struct Monomial<'a> {
 }
 
 impl<'a> Monomial<'a> {
-    pub fn new(namespace: &'a NameSpace) -> Monomial<'a> {  // TODO: init var and const
-        Monomial {
+    pub fn new(namespace: &'a NameSpace) -> Self {
+        let mut coef = BTreeMap::new();
+        coef.insert("1", 1.0);
+        Self {
+            coef,
             var: BTreeMap::new(),
-            coef: BTreeMap::new(),
             namespace
         }
     }
-    pub fn set_const_v(&self, v_table: BTreeMap<&'static str, f64>) -> Monomial<'a> {
+    pub fn mul_var(&mut self, v: &'static str) -> &mut Self {
+        if self.coef.contains_key(v) {
+            self
+        } else {
+            self.var.entry(v).or_insert(1.0);
+            self
+        }
+    }
+    pub fn mul_const(&mut self, c: &'static str) -> &mut Self {
+        if self.var.contains_key(c) {
+            self
+        } else {
+            self.coef.entry(c).or_insert(1.0);
+            self
+        }
+    }
+    /// set value to some of the constants of the expression
+    /// 
+    /// notice that the value table may contants other constants that is not contained in current expression
+    pub fn set_const_v(&self, v_table: BTreeMap<&'static str, f64>) -> Self {
         let mut new_coef = BTreeMap::new();
         let mut num = *self.coef.get(&"1").unwrap();
         for c in self.coef.keys() {
@@ -26,12 +47,12 @@ impl<'a> Monomial<'a> {
                     num *= *const_val * *self.coef.get(c).unwrap();
                 }
                 None => {
-                    new_coef.entry(*c).or_insert(*self.coef.get(c).unwrap());
+                    new_coef.insert(*c, *self.coef.get(c).unwrap());
                 }
             }
         }
-        new_coef.entry("1").or_insert(num);
-        Monomial {
+        new_coef.insert("1", num);
+        Self {
             var: self.var.clone(),
             coef: new_coef,
             namespace: self.namespace
@@ -48,8 +69,8 @@ pub struct Expr<'a> {
 }
 
 impl<'a> Expr<'a> {
-    pub fn new(namespace: &'a NameSpace) -> Expr {
-        Expr {
+    pub fn new(namespace: &'a NameSpace) -> Self {
+        Self {
             expr_tree: ExprTree::new(),
             count_var: BTreeMap::new(),
             count_const: BTreeMap::new(),

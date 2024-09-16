@@ -7,13 +7,13 @@ pub struct SpaceVector{x: f64, y: f64, z: f64}
 
 impl SpaceVector {
     pub fn new(x: f64, y: f64 ,z: f64) -> Self{
-        SpaceVector{x, y, z}
+        Self {x, y, z}
     }
     pub fn len(&self) -> f64 {
         (self.x.powi(2) + self.y.powi(2) + self.z.powi(2)).sqrt()
     }
     pub fn copy(&self) -> Self {
-        SpaceVector{x: self.x, y: self.y, z: self.z}
+        Self {x: self.x, y: self.y, z: self.z}
     }
     pub fn to_line(&self, p: &Point) -> Result<Line, ()> {
         let (x_p, y_p, z_p) = p.pos();
@@ -43,7 +43,7 @@ impl fmt::Display for SpaceVector {
 impl ops::Add for &SpaceVector {
     type Output = SpaceVector;
     fn add(self, other: Self) -> Self::Output {
-        SpaceVector{x: self.x + other.x, y: self.y + other.y, z: self.z + other.z}
+        SpaceVector {x: self.x + other.x, y: self.y + other.y, z: self.z + other.z}
     }
 }
 
@@ -60,7 +60,7 @@ impl ops::Add for SpaceVector {
 impl ops::Sub for &SpaceVector {
     type Output = SpaceVector;
     fn sub(self, other: Self) -> Self::Output {
-        SpaceVector{x: self.x - other.x, y: self.y - other.y, z: self.z - other.z}
+        SpaceVector {x: self.x - other.x, y: self.y - other.y, z: self.z - other.z}
     }
 }
 
@@ -77,12 +77,12 @@ impl ops::Sub for SpaceVector {
 impl ops::Neg for &SpaceVector {
     type Output = SpaceVector;
     fn neg(self) -> Self::Output {
-        SpaceVector{x: -self.x, y: -self.y, z: -self.z}
+        SpaceVector {x: -self.x, y: -self.y, z: -self.z}
     }
 }
 
 impl ops::Neg for SpaceVector {
-    type Output = SpaceVector;
+    type Output = Self;
     fn neg(mut self) -> Self::Output {
         self.x = -self.x;
         self.y = -self.y;
@@ -94,12 +94,12 @@ impl ops::Neg for SpaceVector {
 impl ops::Mul<f64> for &SpaceVector {
     type Output = SpaceVector;
     fn mul(self, other: f64) -> Self::Output {
-        SpaceVector{x: self.x * other, y: self.y * other, z: self.z * other}
+        SpaceVector {x: self.x * other, y: self.y * other, z: self.z * other}
     }
 }
 
 impl ops::Mul<f64> for SpaceVector {
-    type Output = SpaceVector;
+    type Output = Self;
     fn mul(mut self, other: f64) -> Self::Output {
         self.x = self.x * other;
         self.y = self.y * other;
@@ -118,7 +118,7 @@ impl ops::Mul<&SpaceVector> for &SpaceVector {
 
 impl ops::Mul<SpaceVector> for SpaceVector {
     type Output = f64;
-    fn mul<'a>(self, other: SpaceVector) -> Self::Output {
+    fn mul<'a>(self, other: Self) -> Self::Output {
         self.x * other.x + self.y * other.y + self.z * other.z
     }
 }
@@ -126,12 +126,12 @@ impl ops::Mul<SpaceVector> for SpaceVector {
 impl ops::Div<f64> for &SpaceVector {
     type Output = SpaceVector;
     fn div(self, other: f64) -> Self::Output {
-        SpaceVector{x: self.x / other, y: self.y / other, z: self.z / other}
+        SpaceVector {x: self.x / other, y: self.y / other, z: self.z / other}
     }
 }
 
 impl ops::Div<f64> for SpaceVector {
-    type Output = SpaceVector;
+    type Output = Self;
     fn div(mut self, other: f64) -> Self::Output {
         self.x = self.x / other;
         self.y = self.y / other;
@@ -144,7 +144,7 @@ impl ops::Div<f64> for SpaceVector {
 impl ops::Rem for &SpaceVector {
     type Output = SpaceVector;
     fn rem(self, other: Self) -> Self::Output {
-        SpaceVector{
+        SpaceVector {
             x: self.y*other.z-self.z*other.y,
             y: -self.x*other.z+self.z*other.x,
             z: self.x*other.y-self.y*other.x,
@@ -153,7 +153,7 @@ impl ops::Rem for &SpaceVector {
 }
 
 impl ops::Rem for SpaceVector {
-    type Output = SpaceVector;
+    type Output = Self;
     fn rem(mut self, other: Self) -> Self::Output {
         self.x = self.y*other.z-self.z*other.y;
         self.y = -self.x*other.z+self.z*other.x;
@@ -162,8 +162,8 @@ impl ops::Rem for SpaceVector {
     }
 }
 
-impl PartialEq<SpaceVector> for SpaceVector {
-    fn eq(&self, other: &SpaceVector) -> bool {
+impl PartialEq<Self> for SpaceVector {
+    fn eq(&self, other: &Self) -> bool {
         self.x == other.x && self.y == other.y && self.z == other.z
     }
 }

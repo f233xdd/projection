@@ -12,8 +12,8 @@ pub struct Point {
 }
 
 impl Point {
-    pub fn new(x: f64, y: f64) -> Point {
-        Point {x, y}
+    pub fn new(x: f64, y: f64) -> Self {
+        Self {x, y}
     }
     pub fn pos(&self) -> (f64, f64) {
         (self.x, self.y)
@@ -60,17 +60,17 @@ pub struct Line {
 
 impl Line {
     /// k1 * x + k2 * y = b
-    pub fn new(k1: f64, k2: f64, b: f64) -> Result<Line, err::InvalidFnArgError> {
-        if k1 == 0.0 && k2 == 0.0{
+    pub fn new(k1: f64, k2: f64, b: f64) -> Result<Self, err::InvalidFnArgError> {
+        if k1 == 0.0 && k2 == 0.0 {
             Err(err::InvalidFnArgError())
         } else {
-            Ok(Self{fn_args: (k1, k2, b)})
+            Ok(Self {fn_args: (k1, k2, b)})
         }
     } 
 
-    pub fn from(p1: &Point, p2: &Point) -> Result<Line, err::InterpositionError> {
+    pub fn from(p1: &Point, p2: &Point) -> Result<Self, err::InterpositionError> {
         match calc_line_fn(p1, p2) {
-            Ok(func_args) => {Ok(Line{fn_args: func_args})}
+            Ok(func_args) => {Ok(Self {fn_args: func_args})}
             Err(e) => {Err(e)}
         }
     }

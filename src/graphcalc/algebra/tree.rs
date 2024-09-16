@@ -6,6 +6,7 @@ enum OneArgFnType<'a> {
 }
 
 enum Node<'a> {
+    // $coef * $($func)* ( $($mono)* + $($next)* )
     Add{
         mono: Vec<Monomial<'a>>,
         func: Vec<OneArgFnType<'a>>,
@@ -13,6 +14,7 @@ enum Node<'a> {
         next: Vec<Box<Node<'a>>>,
         supr: Option<&'a Node<'a>>,
     },
+    // $coef * $($func)* ( $mono * $($next)* )
     Mul{
         mono: Monomial<'a>,
         func: Vec<OneArgFnType<'a>>,
@@ -27,8 +29,8 @@ pub struct ExprTree<'a> {
 }
 
 impl<'a> ExprTree<'a> {
-    pub fn new() -> ExprTree<'a> {
-        ExprTree {
+    pub fn new() -> Self {
+        Self {
             root: Node::Add { 
                 mono: Vec::new(),
                 func: Vec::new(),
@@ -79,8 +81,8 @@ pub struct NameSpace {
 }
 
 impl NameSpace {
-    pub fn new() -> NameSpace {
-        NameSpace {
+    pub fn new() -> Self {
+        Self {
             variable: Vec::new(),
             constant: Vec::new(),
             avail_func: Vec::new()
