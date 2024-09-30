@@ -8,20 +8,26 @@ use std::f64::consts::PI;
 use projection::graphcalc::geo2d::tool::*;
 use projection::{p, ln};
 
-pub fn test_main() {
-    test_calc_line_func();
-    test_is_in();
-    test_is_parallel();
-    test_is_vertical();
-    test_is_superposition();
-    test_calc_point_line_d();
-    test_calc_line_d();
-    test_calc_angle();
-    test_calc_intersection();
+// static TEST_LIST: [fn()->();9] = [
+//     test_line_func,
+//     test_is_in,
+//     test_is_parallel,
+//     test_is_vertical,
+//     test_is_superposition,
+//     test_calc_point_line_d,
+//     test_calc_line_d,
+//     test_calc_angle,
+//     test_calc_intersection,
+// ];
+
+
+fn test<T>(v: T) {
+    
 }
 
 #[test]
-fn test_calc_line_func() {
+fn test_line_func() {
+    test::<projection::graphcalc::geo2d::Line>(ln!((5.0, 55.0), (4.0, 46.0)).unwrap());
     let v = calc_line_fn(&p!(9.0, 52.0), &p!(5.0, 32.0)).unwrap();
     assert_eq!(v, (20.0,-4.0,-28.0));
 }

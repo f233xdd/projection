@@ -264,7 +264,6 @@ pub fn calc_line_angle(ln1: &Line, ln2: &Line) -> f64 {
 pub fn calc_line_plane_angle(ln: &Line, pn: &Plane) -> f64 {
     let vec1 = ln.get_direction_vec();
     let vec2 = pn.get_normal_vec();
-    println!("{} {}", vec1, vec2);
     ((&vec1 * &vec2).abs() / (vec1.len() * vec2.len())).asin()
 }
 

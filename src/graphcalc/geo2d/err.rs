@@ -73,6 +73,17 @@ impl fmt::Display for SuperpositionError {
 impl error::Error for SuperpositionError {}
 
 #[derive(Debug)]
+pub struct MismatchedComponentError();
+
+impl fmt::Display for MismatchedComponentError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "MismatchedComponentError")
+    }
+}
+
+impl error::Error for MismatchedComponentError {}
+
+#[derive(Debug)]
 pub enum PositionError {
     ParallelError(ParallelError),
     NotParallelError(NotParallelError),
@@ -86,13 +97,13 @@ pub enum PositionError {
 impl fmt::Display for PositionError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match &self {
-            PositionError::ParallelError(ref e) => e.fmt(f),
-            PositionError::NotParallelError(ref e) => e.fmt(f),
-            PositionError::VerticalError(ref e) => e.fmt(f),
-            PositionError::NotVertincalError(ref e) => e.fmt(f),
-            PositionError::IncludedError(ref e) => e.fmt(f),
-            PositionError::NotIncludedError(ref e) => e.fmt(f),
-            PositionError::SuperpositionError(ref e) => e.fmt(f)
+            Self::ParallelError(ref e) => e.fmt(f),
+            Self::NotParallelError(ref e) => e.fmt(f),
+            Self::VerticalError(ref e) => e.fmt(f),
+            Self::NotVertincalError(ref e) => e.fmt(f),
+            Self::IncludedError(ref e) => e.fmt(f),
+            Self::NotIncludedError(ref e) => e.fmt(f),
+            Self::SuperpositionError(ref e) => e.fmt(f)
         }
     }
 }
@@ -100,56 +111,55 @@ impl fmt::Display for PositionError {
 impl error::Error for PositionError {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match &self {
-            PositionError::ParallelError(ref e) => Some(e),
-            PositionError::NotParallelError(ref e) => Some(e),
-            PositionError::VerticalError(ref e) => Some(e),
-            PositionError::NotVertincalError(ref e) => Some(e),
-            PositionError::IncludedError(ref e) => Some(e),
-            PositionError::NotIncludedError(ref e) => Some(e),
-            PositionError::SuperpositionError(ref e) => Some(e)
+            Self::ParallelError(ref e) => Some(e),
+            Self::NotParallelError(ref e) => Some(e),
+            Self::VerticalError(ref e) => Some(e),
+            Self::NotVertincalError(ref e) => Some(e),
+            Self::IncludedError(ref e) => Some(e),
+            Self::NotIncludedError(ref e) => Some(e),
+            Self::SuperpositionError(ref e) => Some(e),
         }
     }
 }
 
 impl From<ParallelError> for PositionError {
     fn from(value: ParallelError) -> Self {
-        PositionError::ParallelError(value)
+        Self::ParallelError(value)
     }
 }
 impl From<NotParallelError> for PositionError {
     fn from(value: NotParallelError) -> Self {
-        PositionError::NotParallelError(value)
+        Self::NotParallelError(value)
     }
 }
 impl From<VerticalError> for PositionError {
     fn from(value: VerticalError) -> Self {
-        PositionError::VerticalError(value)
+        Self::VerticalError(value)
     }
 }
 impl From<NotVertincalError> for PositionError {
     fn from(value: NotVertincalError) -> Self {
-        PositionError::NotVertincalError(value)
+        Self::NotVertincalError(value)
     }
 }
 impl From<IncludedError> for PositionError {
     fn from(value: IncludedError) -> Self {
-        PositionError::IncludedError(value)
+        Self::IncludedError(value)
     }
 }
 impl From<NotIncludedError> for PositionError {
     fn from(value: NotIncludedError) -> Self {
-        PositionError::NotIncludedError(value)
+        Self::NotIncludedError(value)
     }
 }
 impl From<SuperpositionError> for PositionError {
     fn from(value: SuperpositionError) -> Self {
-        PositionError::SuperpositionError(value)
+        Self::SuperpositionError(value)
     }
 }
 
 #[derive(Debug)]
 pub struct InvalidFnArgError();
-
 
 impl fmt::Display for InvalidFnArgError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -158,3 +168,45 @@ impl fmt::Display for InvalidFnArgError {
 }
 
 impl error::Error for InvalidFnArgError {}
+
+#[derive(Debug)]
+pub enum Geo2DError {
+    PositionError(PositionError),
+    MismatchedComponentError(MismatchedComponentError),
+    InvalidFnArgError(InvalidFnArgError),
+}
+
+impl fmt::Display for Geo2DError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match &self {
+            Self::PositionError(ref e) => e.fmt(f),
+            Self::MismatchedComponentError(ref e) => e.fmt(f),
+            Self::InvalidFnArgError(ref e) => e.fmt(f),
+        }
+    }
+}
+
+impl error::Error for Geo2DError {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        match &self {
+            Self::PositionError(ref e) => Some(e),
+            Self::MismatchedComponentError(ref e) => Some(e),
+            Self::InvalidFnArgError(ref e) => Some(e),
+        }
+    }
+}
+impl From<PositionError> for Geo2DError {
+    fn from(value: PositionError) -> Self {
+        Self::PositionError(value)
+    }
+}
+impl From<MismatchedComponentError> for Geo2DError {
+    fn from(value: MismatchedComponentError) -> Self {
+        Self::MismatchedComponentError(value)
+    }
+}
+impl From<InvalidFnArgError> for Geo2DError {
+    fn from(value: InvalidFnArgError) -> Self {
+        Self::InvalidFnArgError(value)
+    }   
+}
