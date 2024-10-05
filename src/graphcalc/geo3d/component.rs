@@ -2,9 +2,13 @@ use std::fmt;
 
 use crate::graphcalc::algebra::calc::approximate;
 
-use super::tool::*;
-use super::tool::feature::*;
-use super::vector::SpaceVector;
+use super::{
+    tool::*,
+    SpaceVector,
+    err,
+    Geo3DResult,
+    super::interface
+};
 
 // 3D part
 pub struct Point {
@@ -28,37 +32,37 @@ impl fmt::Display for Point {
     }
 }
 
-impl Inclusion<Line> for Point {
+impl interface::Contain<Line> for Point {
     fn is_included(&self, cpt: &Line) -> bool {
         point_is_in_line(self, cpt)
     }
 }
 
-impl Inclusion<Plane> for Point {
+impl interface::Contain<Plane> for Point {
     fn is_included(&self, cpt: &Plane) -> bool {
         point_is_in_plane(self, cpt)
     }
 }
 
-impl Superposition<Point> for Point {
+impl interface::Superposition<Point> for Point {
     fn is_superposition(&self, cpt: &Point) -> bool {
         point_is_superposition(self, cpt)
     }
 }
 
-impl CalcDistance<Point, f64> for Point {
+impl interface::CalcDistance<Point, f64> for Point {
     fn calc_d(&self, cpt: &Point) -> f64 {
         calc_point_d(self, cpt)
     }
 }
 
-impl CalcDistance<Line, f64> for Point {
+impl interface::CalcDistance<Line, f64> for Point {
     fn calc_d(&self, cpt: &Line) -> f64 {
         calc_point_line_d(self, cpt)
     }
 }
 
-impl CalcDistance<Plane, f64> for Point {
+impl interface::CalcDistance<Plane, f64> for Point {
     fn calc_d(&self, cpt: &Plane) -> f64 {
         calc_point_plane_d(self, cpt)
     }
@@ -71,18 +75,18 @@ pub struct Line {
 }
 impl Line {
     pub fn new(k11: f64, k12: f64, k13: f64, b1: f64,
-                k21: f64, k22: f64, k23: f64, b2: f64) -> Result<Self, ()> {
+                k21: f64, k22: f64, k23: f64, b2: f64) -> Result<Self, err::InvalidFnArgError> {
         if !approximate(k11*k22, k12*k21) || !approximate(k11*k23, k13*k21) {
             Ok(Self {fn_args: ((k11, k12, k13, b1), (k21, k22, k23, b2))})
         } else {
-            Err(())
+            Err(err::InvalidFnArgError())
         }
     }
 
-    pub fn from(p1: &Point, p2: &Point) -> Result<Self, ()> {
+    pub fn from_p(p1: &Point, p2: &Point) -> Result<Self, err::InvalidFnArgError> {
         match calc_line_fn(p1, p2) {
             Ok(func_args) => {Ok(Self {fn_args: func_args})}
-            Err(()) => {Err(())}
+            Err(()) => {Err(err::InvalidFnArgError())}
         }
     }
 
@@ -167,87 +171,87 @@ impl fmt::Display for Line {
     }
 }
 
-impl Inclusion<Plane> for Line {
+impl interface::Contain<Plane> for Line {
     fn is_included(&self, cpt: &Plane) -> bool {
         line_is_in_plane(self, cpt)
     }
 }
 
-impl Parallelism<Line> for Line {
+impl interface::Parallel<Line> for Line {
     fn is_parallel(&self, cpt: &Line) -> bool {
         line_is_parallel(self, cpt)
     }
 }
 
-impl Parallelism<Plane> for Line {
+impl interface::Parallel<Plane> for Line {
     fn is_parallel(&self, cpt: &Plane) -> bool {
         line_plane_is_parallel(self, cpt)
     }
 }
 
-impl Vertical<Line> for Line {
+impl interface::Vertical<Line> for Line {
     fn is_vertical(&self, cpt: &Line) -> bool {
         line_is_vertical(self, cpt)
     }
 }
 
-impl Vertical<Plane> for Line {
+impl interface::Vertical<Plane> for Line {
     fn is_vertical(&self, cpt: &Plane) -> bool {
         line_plane_is_vertical(self, cpt)
     }
 }
 
-impl Coplanarity<Line> for Line {
+impl interface::Coplanar<Line> for Line {
     fn is_coplanar(&self, cpt: &Line) -> bool {
         line_is_coplanar(self, cpt)
     }
 }
 
-impl Superposition<Line> for Line {
+impl interface::Superposition<Line> for Line {
     fn is_superposition(&self, cpt: &Line) -> bool {
         line_is_superposition(self, cpt)
     }
 }
 
-impl CalcDistance<Point, f64> for Line{
+impl interface::CalcDistance<Point, f64> for Line {
     fn calc_d(&self, cpt: &Point) -> f64 {
         calc_point_line_d(cpt, self)
     }
 }
 
-impl CalcDistance<Line, f64> for Line{
+impl interface::CalcDistance<Line, f64> for Line {
     fn calc_d(&self, cpt: &Line) -> f64 {
         calc_line_d(self, cpt)
     }
 }
 
-impl CalcDistance<Plane, Result<f64, ()>> for Line{
-    fn calc_d(&self, cpt: &Plane) -> Result<f64, ()> {
-        calc_line_plane_d(self, cpt)
+impl interface::CalcDistance<Plane, Geo3DResult<f64>> for Line {
+    fn calc_d(&self, cpt: &Plane) -> Geo3DResult<f64> {
+        Ok(calc_line_plane_d(self, cpt)?)
     }
 }
 
-impl CalcAngle<Line> for Line {
+impl interface::CalcAngle<Line> for Line {
     fn calc_angle(&self, cpt: &Line) -> f64 {
         calc_line_angle(self, cpt)
     }
 }
 
-impl CalcAngle<Plane> for Line {
+impl interface::CalcAngle<Plane> for Line {
     fn calc_angle(&self, cpt: &Plane) -> f64 {
         calc_line_plane_angle(self, cpt)
     }
 }
 
-impl CalcIntersection<Line, Result<Point, ()>> for Line {
-    fn calc_intersection(&self, cpt: &Line) -> Result<Point, ()> {
-        calc_line_intersection(self, cpt)
+impl interface::CalcIntersection<Line, Geo3DResult<Point>> for Line {
+    fn calc_intersection(&self, cpt: &Line) -> Geo3DResult<Point> {
+        Ok(calc_line_intersection(self, cpt)?)
     }
 }
 
-impl CalcIntersection<Plane, Result<Point, ()>> for Line {
-    fn calc_intersection(&self, cpt: &Plane) -> Result<Point, ()> {
-        calc_line_plane_intersection(self, cpt)
+impl interface::CalcIntersection<Plane, Geo3DResult<Point>> for Line {
+    fn calc_intersection(&self, cpt: &Plane) -> Geo3DResult<Point> {
+        Ok(calc_line_plane_intersection(self, cpt)?)
     }
 }
 
@@ -258,18 +262,18 @@ pub struct Plane {
 
 impl Plane {
     /// k1 * x + k2 * y + k3 * z = b
-    pub fn new(k1: f64, k2: f64, k3: f64, b: f64) -> Result<Self, ()> {
+    pub fn new(k1: f64, k2: f64, k3: f64, b: f64) -> Result<Self, err::InvalidFnArgError> {
         if k1 == 0.0 && k2 == 0.0 && k3 == 0.0 {
-            Err(())
+            Err(err::InvalidFnArgError())
         } else {
             Ok(Self {func_args: (k1, k2, k3, b)})
         }
     }
 
-    pub fn from(p1: &Point, p2: &Point, p3: &Point) -> Result<Self, ()>  {
+    pub fn from_p(p1: &Point, p2: &Point, p3: &Point) -> Result<Self, err::InvalidFnArgError>  {
         match calc_plane_fn(p1, p2, p3) {
-            Ok(fn_args) => {Ok(Self {func_args: fn_args})}
-            Err(()) => {Err(())}
+            Ok(fn_args) => Ok(Self {func_args: fn_args}),
+            Err(e) => Err(e)
         }
     }
 
@@ -327,74 +331,96 @@ impl fmt::Display for Plane {
     }
 }
 
-impl Parallelism<Line> for Plane {
+impl interface::Parallel<Line> for Plane {
     fn is_parallel(&self, cpt: &Line) -> bool {
         line_plane_is_parallel(cpt, self)
     }
 }
 
-impl Parallelism<Plane> for Plane {
+impl interface::Parallel<Plane> for Plane {
     fn is_parallel(&self, cpt: &Plane) -> bool {
         plane_is_parallel(self, cpt)
     }
 }
 
-impl Vertical<Line> for Plane {
+impl interface::Vertical<Line> for Plane {
     fn is_vertical(&self, cpt: &Line) -> bool {
         line_plane_is_vertical(cpt, self)
     }
 }
 
-impl Vertical<Plane> for Plane {
+impl interface::Vertical<Plane> for Plane {
     fn is_vertical(&self, cpt: &Plane) -> bool {
         plane_is_vertical(self, cpt)
     }
 }
 
-impl Superposition<Plane> for Plane {
+impl interface::Superposition<Plane> for Plane {
     fn is_superposition(&self, cpt: &Plane) -> bool {
         plane_is_superposition(self, cpt)
     }
 }
 
-impl CalcDistance<Point, f64> for Plane {
+impl interface::CalcDistance<Point, f64> for Plane {
     fn calc_d(&self, cpt: &Point) -> f64 {
         calc_point_plane_d(cpt, self)
     }
 }
 
-impl CalcDistance<Line, Result<f64, ()>> for Plane {
-    fn calc_d(&self, cpt: &Line) -> Result<f64, ()> {
-        calc_line_plane_d(cpt, self)
+impl interface::CalcDistance<Line, Geo3DResult<f64>> for Plane {
+    fn calc_d(&self, cpt: &Line) -> Geo3DResult<f64> {
+        Ok(calc_line_plane_d(cpt, self)?)
     }
 }
 
-impl CalcDistance<Plane, Result<f64, ()>> for Plane {
-    fn calc_d(&self, cpt: &Plane) -> Result<f64, ()> {
-        calc_plane_d(self, cpt)
+impl interface::CalcDistance<Plane, Geo3DResult<f64>> for Plane {
+    fn calc_d(&self, cpt: &Plane) -> Geo3DResult<f64> {
+        Ok(calc_plane_d(self, cpt)?)
     }
 }
 
-impl CalcAngle<Line> for Plane {
+impl interface::CalcAngle<Line> for Plane {
     fn calc_angle(&self, cpt: &Line) -> f64 {
         calc_line_plane_angle(cpt, self)
     }
 }
 
-impl CalcAngle<Plane> for Plane {
+impl interface::CalcAngle<Plane> for Plane {
     fn calc_angle(&self, cpt: &Plane) -> f64 {
         calc_plane_angle(self, cpt)
     }
 }
 
-impl CalcIntersection<Line, Result<Point, ()>> for Plane {
-    fn calc_intersection(&self, cpt: &Line) -> Result<Point, ()> {
-        calc_line_plane_intersection(cpt, &self)
+impl interface::CalcIntersection<Line, Geo3DResult<Point>> for Plane {
+    fn calc_intersection(&self, cpt: &Line) -> Geo3DResult<Point> {
+        Ok(calc_line_plane_intersection(cpt, &self)?)
     }
 }
 
-impl CalcIntersection<Plane, Result<Line, ()>> for Plane {
-    fn calc_intersection(&self, cpt: &Plane) -> Result<Line, ()> {
-        calc_plane_intersection(self, cpt)
+impl interface::CalcIntersection<Plane, Geo3DResult<Line>> for Plane {
+    fn calc_intersection(&self, cpt: &Plane) -> Geo3DResult<Line> {
+        Ok(calc_plane_intersection(self, cpt)?)
+    }
+}
+
+pub enum Geo3DComponent {
+    Point(Point),
+    Line(Line),
+    Plane(Plane),
+}
+
+impl From<Point> for Geo3DComponent {
+    fn from(value: Point) -> Self {
+        Self::Point(value)
+    }
+}
+impl From<Line> for Geo3DComponent {
+    fn from(value: Line) -> Self {
+        Self::Line(value)
+    }
+}
+impl From<Plane> for Geo3DComponent {
+    fn from(value: Plane) -> Self {
+        Self::Plane(value)
     }
 }

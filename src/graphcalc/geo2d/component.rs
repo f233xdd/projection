@@ -1,9 +1,13 @@
 use std::fmt;
 
 // 2D part
-use super::tool::*;
-use super::vector::PlaneVector;
-use super::err;
+use super::{
+    tool::*,
+    PlaneVector,
+    err,
+    Geo2DResult,
+    super::interface,
+};
 
 pub struct Point {
     x: f64,
@@ -17,29 +21,35 @@ impl Point {
     pub fn pos(&self) -> (f64, f64) {
         (self.x, self.y)
     }
-    pub fn is_superposition(&self, cpt2d: &Geo2DComponent) -> Result<bool, err::MismatchedComponentError> {
-        match cpt2d {
-            Geo2DComponent::Point(p) => Ok(point_is_superposition(self, p)),
-            _ => Err(err::MismatchedComponentError())
-        }
-    }
-    pub fn is_contained(&self, cpt2d: &Geo2DComponent) -> Result<bool, err::MismatchedComponentError> {
-        match cpt2d {
-            Geo2DComponent::Line(ln) => Ok(is_in(self, ln)),
-            _ => Err(err::MismatchedComponentError())
-        }
-    }
-    pub fn calc_d(&self, cpt2d: &Geo2DComponent) -> f64 {
-        match cpt2d {
-            Geo2DComponent::Point(p) => calc_point_d(self, p),
-            Geo2DComponent::Line(ln) => calc_point_line_d(self, ln)
-        }
-    }
 }
 
 impl fmt::Display for Point {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "<Point: ({}, {})>", self.x, self.y)
+    }
+}
+
+impl interface::Contain<Line> for Point {
+    fn is_included(&self, cpt: &Line) -> bool {
+        is_in(self, cpt)
+    }
+}
+
+impl interface::Superposition<Point> for Point {
+    fn is_superposition(&self, cpt: &Point) -> bool {
+        point_is_superposition(self, cpt)
+    }
+}
+
+impl interface::CalcDistance<Point, f64> for Point {
+    fn calc_d(&self, cpt: &Point) -> f64 {
+        calc_point_d(self, cpt)
+    }
+}
+
+impl interface::CalcDistance<Line, f64> for Point {
+    fn calc_d(&self, cpt: &Line) -> f64 {
+        calc_point_line_d(self, cpt)
     }
 }
 
@@ -70,45 +80,6 @@ impl Line {
     pub fn get_direction_vec(&self) -> PlaneVector {
         PlaneVector::new(self.fn_args.1, -self.fn_args.0)
     }
-    pub fn is_superposition(&self, cpt2d: &Geo2DComponent) -> Result<bool, err::MismatchedComponentError> {
-        match cpt2d {
-            Geo2DComponent::Line(ln) => Ok(line_is_superposition(self, ln)),
-            _ => Err(err::MismatchedComponentError()),
-        }
-    }
-    pub fn is_parallel(&self, cpt2d: &Geo2DComponent) -> Result<bool, err::MismatchedComponentError> {
-        match cpt2d {
-            Geo2DComponent::Line(ln) => Ok(is_parallel(self, ln)),
-            _ => Err(err::MismatchedComponentError()),
-        }
-    }
-    pub fn is_vertical(&self, cpt2d: &Geo2DComponent) -> Result<bool, err::MismatchedComponentError> {
-        match cpt2d {
-            Geo2DComponent::Line(ln) => Ok(is_vertical(self, ln)),
-            _ => Err(err::MismatchedComponentError()),
-        }
-    }
-    pub fn calc_d(&self, cpt2d: &Geo2DComponent) -> Result<f64, err::NotParallelError> {
-        match cpt2d {
-            Geo2DComponent::Point(p) => Ok(calc_point_line_d(p, self)),
-            Geo2DComponent::Line(ln) => calc_line_d(self, ln),
-        }
-    }
-    pub fn calc_angle(&self, cpt2d: &Geo2DComponent) -> Result<f64, err::MismatchedComponentError> {
-        match cpt2d {
-            Geo2DComponent::Line(ln) => Ok(calc_angle(ln, self)),
-            _ => Err(err::MismatchedComponentError())
-        }
-    }
-    pub fn calc_intersection(&self, cpt2d: &Geo2DComponent) -> Result<Point, err::Geo2DError> {
-        match cpt2d {
-            Geo2DComponent::Line(ln) => match calc_intersection(self, ln) {
-                Ok(i) => Ok(i),
-                Err(e) => Err(err::Geo2DError::from(err::PositionError::from(e)))
-            },
-            _ => Err(err::Geo2DError::from(err::MismatchedComponentError()))
-        }
-    }
 }
 
 impl fmt::Display for Line {
@@ -138,6 +109,49 @@ impl fmt::Display for Line {
     }
 }
 
+impl interface::Contain<Point> for Line {
+    fn is_included(&self, cpt: &Point) -> bool {
+        is_in(cpt, self)
+    }
+}
+impl interface::Parallel<Line> for Line {
+    fn is_parallel(&self, cpt: &Line) -> bool {
+        is_parallel(self, cpt)
+    }   
+}
+impl interface::Vertical<Line> for Line {
+    fn is_vertical(&self, cpt: &Line) -> bool {
+        is_vertical(self, cpt)
+    }
+}
+impl interface::Superposition<Line> for Line {
+    fn is_superposition(&self, cpt: &Line) -> bool {
+        line_is_superposition(self, cpt)
+    }
+}
+impl interface::CalcDistance<Point, f64> for Line {
+    fn calc_d(&self, cpt: &Point) -> f64 {
+        calc_point_line_d(cpt, self)
+    }
+}
+impl interface::CalcDistance<Line, Geo2DResult<f64>> for Line {
+    fn calc_d(&self, cpt: &Line) -> Geo2DResult<f64> {
+        Ok(calc_line_d(self, cpt)?)
+    }
+}
+
+impl interface::CalcAngle<Line> for Line {
+    fn calc_angle(&self, cpt: &Line) -> f64 {
+        calc_angle(self, cpt)
+    }
+}
+
+impl interface::CalcIntersection<Line, Geo2DResult<Point>> for Line {
+    fn calc_intersection(&self, cpt: &Line) -> Geo2DResult<Point> {
+        Ok(calc_intersection(self, cpt)?)
+    }
+}
+
 pub enum Geo2DComponent {
     Point(Point),
     Line(Line),
@@ -148,7 +162,6 @@ impl From<Point> for Geo2DComponent {
         Self::Point(value)
     }
 }
-
 impl From<Line> for Geo2DComponent {
     fn from(value: Line) -> Self {
         Self::Line(value)

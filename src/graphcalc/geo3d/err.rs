@@ -1,4 +1,4 @@
-use std::{error, fmt};
+use std::{error, fmt,};
 
 #[derive(Debug)]
 pub struct ParallelError();
@@ -182,8 +182,18 @@ impl From<SuperpositionError> for PositionError {
 }
 
 #[derive(Debug)]
-pub struct InvalidFnArgError();
+pub struct MismatchedComponentError();
 
+impl fmt::Display for MismatchedComponentError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "MismatchedComponentError")
+    }
+}
+
+impl error::Error for MismatchedComponentError {}
+
+#[derive(Debug)]
+pub struct InvalidFnArgError();
 
 impl fmt::Display for InvalidFnArgError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -192,3 +202,46 @@ impl fmt::Display for InvalidFnArgError {
 }
 
 impl error::Error for InvalidFnArgError {}
+
+#[derive(Debug)]
+pub enum Geo3DError {
+    PositionError(PositionError),
+    MismatchedComponentError(MismatchedComponentError),
+    InvalidFnArgError(InvalidFnArgError),
+}
+
+impl fmt::Display for Geo3DError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match &self {
+            Self::PositionError(ref e) => e.fmt(f),
+            Self::MismatchedComponentError(ref e) => e.fmt(f),
+            Self::InvalidFnArgError(ref e) => e.fmt(f),
+        }
+    }
+}
+
+impl error::Error for Geo3DError {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        match &self {
+            Self::PositionError(ref e) => Some(e),
+            Self::MismatchedComponentError(ref e) => Some(e),
+            Self::InvalidFnArgError(ref e) => Some(e),
+        }
+    }
+}
+
+impl From<MismatchedComponentError> for Geo3DError {
+    fn from(value: MismatchedComponentError) -> Self {
+        Self::MismatchedComponentError(value)
+    }
+}
+impl From<InvalidFnArgError> for Geo3DError {
+    fn from(value: InvalidFnArgError) -> Self {
+        Self::InvalidFnArgError(value)
+    }
+}
+impl<T: Into<PositionError>> From<T> for Geo3DError {
+    fn from(value: T) -> Self {
+        Self::PositionError(value.into())
+    }
+}

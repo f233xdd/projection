@@ -1,8 +1,15 @@
-use std::{ops, fmt};
+use std::{ops, fmt,};
 
-use super::err;
-use super::component::{Point, Line};
-use super::super::geo3d::SpaceVector;
+use super::{
+    component::{
+        Point, Line,
+    },
+    err,
+    super::{
+        geo3d::SpaceVector,
+        algebra::calc::approximate,
+    },
+};
 
 pub struct PlaneVector{x: f64, y: f64}
 
@@ -134,6 +141,7 @@ impl ops::Rem for PlaneVector {
 
 impl PartialEq<Self> for PlaneVector {
     fn eq(&self, other: &Self) -> bool {
-        self.x == other.x && self.y == other.y
+        approximate(self.x, other.x) &&
+        approximate(self.y, other.y)
     }
 }

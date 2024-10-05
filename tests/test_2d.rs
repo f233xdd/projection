@@ -1,8 +1,4 @@
 // Co-author: Equar, Max
-// I'd appreciate my friend Equar for his great effor to those test cases.
-// All the cases given were calculated by him.
-// Again, thank him veru much.
-// However, it's a pity that he can't write code by Rust, so I did all these things
 use std::f64::consts::PI;
 
 use projection::graphcalc::geo2d::tool::*;
@@ -19,15 +15,8 @@ use projection::{p, ln};
 //     test_calc_angle,
 //     test_calc_intersection,
 // ];
-
-
-fn test<T>(v: T) {
-    
-}
-
 #[test]
 fn test_line_func() {
-    test::<projection::graphcalc::geo2d::Line>(ln!((5.0, 55.0), (4.0, 46.0)).unwrap());
     let v = calc_line_fn(&p!(9.0, 52.0), &p!(5.0, 32.0)).unwrap();
     assert_eq!(v, (20.0,-4.0,-28.0));
 }

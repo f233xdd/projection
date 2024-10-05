@@ -1,6 +1,12 @@
 // 2D part
-use super::{component::*, PlaneVector, err};
-use super::super::algebra::calc::approximate;
+use super::{
+    component::{
+        Point, Line,
+    },
+    PlaneVector,
+    err,
+    super::algebra::calc::approximate,
+};
 
 pub fn vec_to_line(vec: &PlaneVector, p: &Point) -> Result<Line, err::InvalidFnArgError> {
     vec.to_line(p)

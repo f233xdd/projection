@@ -4,5 +4,6 @@ mod vector;
 pub mod err;
 
 pub use component::*;
-pub use tool::feature;
 pub use vector::SpaceVector;
+
+pub type Geo3DResult<T> = Result<T, err::Geo3DError>;

@@ -40,7 +40,7 @@ macro_rules! ln {
     };
     // 3D
     (($x1:expr, $y1:expr, $z1:expr), ($x2:expr, $y2:expr, $z2:expr)) => {
-        $crate::graphcalc::geo3d::Line::from(
+        $crate::graphcalc::geo3d::Line::from_p(
             &$crate::graphcalc::geo3d::Point::new($x1, $y1, $z1),
             &$crate::graphcalc::geo3d::Point::new($x2, $y2, $z2)
         )
@@ -60,7 +60,7 @@ macro_rules! pn {
         ($x2:expr, $y2:expr, $z2:expr), 
         ($x3:expr, $y3:expr, $z3:expr)
     ) => {
-        $crate::graphcalc::geo3d::Plane::from(
+        $crate::graphcalc::geo3d::Plane::from_p(
             &$crate::graphcalc::geo3d::Point::new($x1, $y1, $z1),
             &$crate::graphcalc::geo3d::Point::new($x2, $y2, $z2),
             &$crate::graphcalc::geo3d::Point::new($x3, $y3, $z3)

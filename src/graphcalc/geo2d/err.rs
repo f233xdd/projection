@@ -1,4 +1,4 @@
-use std::{error, fmt};
+use std::{error, fmt,};
 
 #[derive(Debug)]
 pub struct ParallelError();
@@ -19,8 +19,6 @@ impl fmt::Display for NotParallelError {
     }
 }
 impl error::Error for NotParallelError {}
-
-type IntersectError = NotParallelError;
 
 #[derive(Debug)]
 pub struct VerticalError();
@@ -71,17 +69,6 @@ impl fmt::Display for SuperpositionError {
     }
 }
 impl error::Error for SuperpositionError {}
-
-#[derive(Debug)]
-pub struct MismatchedComponentError();
-
-impl fmt::Display for MismatchedComponentError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "MismatchedComponentError")
-    }
-}
-
-impl error::Error for MismatchedComponentError {}
 
 #[derive(Debug)]
 pub enum PositionError {
@@ -159,6 +146,17 @@ impl From<SuperpositionError> for PositionError {
 }
 
 #[derive(Debug)]
+pub struct MismatchedComponentError();
+
+impl fmt::Display for MismatchedComponentError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "MismatchedComponentError")
+    }
+}
+
+impl error::Error for MismatchedComponentError {}
+
+#[derive(Debug)]
 pub struct InvalidFnArgError();
 
 impl fmt::Display for InvalidFnArgError {
@@ -195,11 +193,7 @@ impl error::Error for Geo2DError {
         }
     }
 }
-impl From<PositionError> for Geo2DError {
-    fn from(value: PositionError) -> Self {
-        Self::PositionError(value)
-    }
-}
+
 impl From<MismatchedComponentError> for Geo2DError {
     fn from(value: MismatchedComponentError) -> Self {
         Self::MismatchedComponentError(value)
@@ -209,4 +203,9 @@ impl From<InvalidFnArgError> for Geo2DError {
     fn from(value: InvalidFnArgError) -> Self {
         Self::InvalidFnArgError(value)
     }   
+}
+impl<T: Into<PositionError>> From<T> for Geo2DError {
+    fn from(value: T) -> Self {
+        Self::PositionError(value.into())
+    }
 }

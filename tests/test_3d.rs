@@ -1,8 +1,8 @@
 // Author: Max
 use std::f64::consts::PI;
 
-use projection::graphcalc::geo3d::{tool::*, feature::Superposition};
-use projection::{p, ln, pn, vector};
+use projection::graphcalc::geo3d::tool::*;
+use projection::{p, ln, pn, vector, graphcalc::interface::Superposition};
 
 const ACCURACY: f64 = 1e-8;
 

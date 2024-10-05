@@ -1,7 +1,12 @@
-use std::{fmt, ops};
+use std::{fmt, ops,};
 
-use super::component::{Line, Plane, Point};
-use super::super::algebra::calc::approximate;
+use super::{
+    component::{
+        Point, Line, Plane,
+    },
+    err,
+    super::algebra::calc::approximate,
+};
 
 pub struct SpaceVector{x: f64, y: f64, z: f64}
 
@@ -15,7 +20,7 @@ impl SpaceVector {
     pub fn copy(&self) -> Self {
         Self {x: self.x, y: self.y, z: self.z}
     }
-    pub fn to_line(&self, p: &Point) -> Result<Line, ()> {
+    pub fn to_line(&self, p: &Point) -> Result<Line, err::InvalidFnArgError> {
         let (x_p, y_p, z_p) = p.pos();
         if !approximate(self.x, 0.0) {
             Line::new(self.y, -self.x, 0.0, self.y*x_p - self.x*y_p,
@@ -25,11 +30,11 @@ impl SpaceVector {
                     1.0, 0.0, 0.0, x_p)
         }
     }
-    pub fn to_plane(&self, p: &Point) -> Result<Plane, ()> {
+    pub fn to_plane(&self, p: &Point) -> Result<Plane, err::InvalidFnArgError> {
         let (x_p, y_p, z_p) = p.pos();
         match Plane::new(self.x, self.y, self.z, self.x*x_p+self.y*y_p+self.z*z_p) {
-            Ok(pn) => {Ok(pn)}
-            Err(()) => {Err(())}
+            Ok(pn) => Ok(pn),
+            Err(e) => Err(e)
         }
     }
 }
@@ -164,6 +169,8 @@ impl ops::Rem for SpaceVector {
 
 impl PartialEq<Self> for SpaceVector {
     fn eq(&self, other: &Self) -> bool {
-        self.x == other.x && self.y == other.y && self.z == other.z
+        approximate(self.x, other.x) &&
+        approximate(self.y, other.y) &&
+        approximate(self.z, other.z)
     }
 }
