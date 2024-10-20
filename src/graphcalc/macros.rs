@@ -82,3 +82,90 @@ macro_rules! vector {
         $crate::graphcalc::geo3d::SpaceVector::new($x, $y, $z)
     }
 }
+
+#[macro_export]
+macro_rules! define {
+
+    (using namespace $np:expr;) => {};
+    (
+        using namespace $np:expr;
+        $($tail:tt)*
+    ) => {
+        define! {
+            in namespace $np; 
+            $($tail)*
+        };
+    };
+
+    (
+        in namespace $np:expr;
+        let $($s:ident),*: var;
+    ) => {
+        $($np.def_var(stringify!($s)).unwrap();)*
+    };
+    (
+        in namespace $np:expr;
+        let $($s:ident),*: var;
+        $($tail:tt)*
+    ) => {
+        $($np.def_var(stringify!($s)).unwrap();)*
+        define! {
+            in namespace $np;
+            $($tail)*
+        }
+    };
+
+    (
+        in namespace $np:expr;
+        let $($s:ident),*: param;
+    ) => {
+        $($np.def_param(stringify!($s)).unwrap();)*
+    };
+    (
+        in namespace $np:expr;
+        let $($s:ident),*: param;
+        $($tail:tt)*
+    ) => {
+        $($np.def_param(stringify!($s)).unwrap();)*
+        define! {
+            in namespace $np;
+            $($tail)*
+        }
+    };
+
+    (
+        in namespace $np:expr;
+        fn $func:expr => (f64);
+    ) => {
+        $np.def_fn(($func as fn(f64) -> f64).into());
+    };
+    (
+        in namespace $np:expr;
+        fn $func:expr => (f64);
+        $($tail:tt)*
+    ) => {
+        $np.def_fn(($func as fn(f64) -> f64).into());
+        define! {
+            in namespace $np;
+            $($tail)*
+        }
+    };
+    (
+        in namespace $np:expr;
+        fn $func:expr => (f64, f64);
+    ) => {
+        $np.def_fn(($func as fn(f64, f64) -> f64).into());
+    };
+    (
+        in namespace $np:expr;
+        fn $func:expr => (f64, f64);
+        $($tail:tt)*
+    ) => {
+        $np.def_fn(($func as fn(f64, f64) -> f64).into());
+        define! {
+            in namespace $np;
+            $($tail)*
+        }
+    };
+}
+

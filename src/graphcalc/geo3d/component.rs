@@ -73,6 +73,7 @@ impl interface::CalcDistance<Plane, f64> for Point {
 pub struct Line {
     fn_args: ((f64, f64, f64, f64), (f64, f64, f64, f64))
 }
+
 impl Line {
     pub fn new(k11: f64, k12: f64, k13: f64, b1: f64,
                 k21: f64, k22: f64, k23: f64, b2: f64) -> Result<Self, err::InvalidFnArgError> {
@@ -85,8 +86,8 @@ impl Line {
 
     pub fn from_p(p1: &Point, p2: &Point) -> Result<Self, err::InvalidFnArgError> {
         match calc_line_fn(p1, p2) {
-            Ok(func_args) => {Ok(Self {fn_args: func_args})}
-            Err(()) => {Err(err::InvalidFnArgError())}
+            Ok(func_args) => Ok(Self {fn_args: func_args}),
+            Err(()) => Err(err::InvalidFnArgError())
         }
     }
 
@@ -284,6 +285,15 @@ impl Plane {
     pub fn get_normal_vec(&self) -> SpaceVector {
         SpaceVector::new(self.func_args.0, self.func_args.1, self.func_args.2)
     }
+
+    // in the case that one is on the plane while the other is not, it returns true
+    pub fn is_on_same_side(&self, p1: &Point, p2: &Point) -> bool {
+        let (x1, y1, z1) = p1.pos();
+        let (x2, y2, z2) = p2.pos();
+        let (a, b, c, d) = self.func_args;
+        if (x1*a+y1*b+z1*c-d) * (x2*a+y2*b+z2*c-d) >= 0.0 { true } 
+        else  { false }
+    }
 }
 
 impl fmt::Display for Plane {
@@ -393,7 +403,7 @@ impl interface::CalcAngle<Plane> for Plane {
 
 impl interface::CalcIntersection<Line, Geo3DResult<Point>> for Plane {
     fn calc_intersection(&self, cpt: &Line) -> Geo3DResult<Point> {
-        Ok(calc_line_plane_intersection(cpt, &self)?)
+        Ok(calc_line_plane_intersection(cpt, self)?)
     }
 }
 

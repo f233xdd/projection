@@ -21,6 +21,9 @@ impl Point {
     pub fn pos(&self) -> (f64, f64) {
         (self.x, self.y)
     }
+    pub fn move_to(&mut self, x: f64, y: f64) {
+        self.x = x; self.y = y;
+    }
 }
 
 impl fmt::Display for Point {
@@ -70,8 +73,8 @@ impl Line {
     } 
     pub fn from(p1: &Point, p2: &Point) -> Result<Self, err::SuperpositionError> {
         match calc_line_fn(p1, p2) {
-            Ok(func_args) => {Ok(Self {fn_args: func_args})}
-            Err(e) => {Err(e)}
+            Ok(func_args) => Ok(Self {fn_args: func_args}),
+            Err(e) => Err(e)
         }
     }
     pub fn fn_args(&self) -> (f64, f64, f64) {

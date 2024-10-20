@@ -95,3 +95,13 @@ pub fn calc_intersection(ln1: &Line, ln2: &Line) -> Result<Point, err::ParallelE
         Ok(Point::new(x, y))
     } else {Err(err::ParallelError())}
 }
+
+/// theta in radians
+pub fn rotate(o: &Point, p: &mut Point, theta: f64) {
+    let (x_p, y_p) = p.pos();
+    let (x_o, y_o) = o.pos();
+    p.move_to(
+        x_p * theta.cos() - y_p * theta.sin() + x_o,
+        x_p * theta.sin() + y_p * theta.cos() + y_o
+    );
+}

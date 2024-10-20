@@ -83,28 +83,28 @@ pub enum PositionError {
 
 impl fmt::Display for PositionError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match &self {
-            Self::ParallelError(ref e) => e.fmt(f),
-            Self::NotParallelError(ref e) => e.fmt(f),
-            Self::VerticalError(ref e) => e.fmt(f),
-            Self::NotVertincalError(ref e) => e.fmt(f),
-            Self::IncludedError(ref e) => e.fmt(f),
-            Self::NotIncludedError(ref e) => e.fmt(f),
-            Self::SuperpositionError(ref e) => e.fmt(f)
+        match self {
+            Self::ParallelError(e) => e.fmt(f),
+            Self::NotParallelError(e) => e.fmt(f),
+            Self::VerticalError(e) => e.fmt(f),
+            Self::NotVertincalError(e) => e.fmt(f),
+            Self::IncludedError(e) => e.fmt(f),
+            Self::NotIncludedError(e) => e.fmt(f),
+            Self::SuperpositionError(e) => e.fmt(f)
         }
     }
 }
 
 impl error::Error for PositionError {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
-        match &self {
-            Self::ParallelError(ref e) => Some(e),
-            Self::NotParallelError(ref e) => Some(e),
-            Self::VerticalError(ref e) => Some(e),
-            Self::NotVertincalError(ref e) => Some(e),
-            Self::IncludedError(ref e) => Some(e),
-            Self::NotIncludedError(ref e) => Some(e),
-            Self::SuperpositionError(ref e) => Some(e),
+        match self {
+            Self::ParallelError(e) => Some(e),
+            Self::NotParallelError(e) => Some(e),
+            Self::VerticalError(e) => Some(e),
+            Self::NotVertincalError(e) => Some(e),
+            Self::IncludedError(e) => Some(e),
+            Self::NotIncludedError(e) => Some(e),
+            Self::SuperpositionError(e) => Some(e),
         }
     }
 }
@@ -176,20 +176,20 @@ pub enum Geo2DError {
 
 impl fmt::Display for Geo2DError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match &self {
-            Self::PositionError(ref e) => e.fmt(f),
-            Self::MismatchedComponentError(ref e) => e.fmt(f),
-            Self::InvalidFnArgError(ref e) => e.fmt(f),
+        match self {
+            Self::PositionError(e) => e.fmt(f),
+            Self::MismatchedComponentError(e) => e.fmt(f),
+            Self::InvalidFnArgError(e) => e.fmt(f),
         }
     }
 }
 
 impl error::Error for Geo2DError {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
-        match &self {
-            Self::PositionError(ref e) => Some(e),
-            Self::MismatchedComponentError(ref e) => Some(e),
-            Self::InvalidFnArgError(ref e) => Some(e),
+        match self {
+            Self::PositionError(e) => Some(e),
+            Self::MismatchedComponentError(e) => Some(e),
+            Self::InvalidFnArgError(e) => Some(e),
         }
     }
 }

@@ -7,7 +7,7 @@ s = [(3, 3, 3), (3, 4, 3), (4, 3, 3), (4, 4, 3),
      (3, 3, 4), (3, 4, 4), (4, 3, 4), (4, 4, 4)]
 # (4, -3, 7)
 p = (-3, -3, 7)
-l = [project.single_project(s1, 3, 0, 90) for s1 in s]
+l = [project.single_project(s1, 3, 45, 90) for s1 in s]
 link = [(0, 4), (1, 5), (2, 6), (3, 7), (0, 1), (0, 2), (1, 3), (2, 3), (4, 5), (4, 6), (5, 7), (6, 7)]
 d = []
 for i in range(len(l)):
@@ -20,6 +20,6 @@ c = CanvasHandler(k=50)
 l = [Point(*p) for p in l]
 for p in l:
     c.create_point(p)
-
+print(l)
 c.create_sight_bead()
 c.show()

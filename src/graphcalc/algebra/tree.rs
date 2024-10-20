@@ -42,6 +42,7 @@ impl<'a> ExprTree<'a> {
     }
 }
 
+#[derive(Debug)]
 pub enum MathFn {
     OneArgFn(fn(f64)->f64),
     TwoArgFn(fn(f64, f64)->f64)
@@ -74,31 +75,32 @@ impl PartialEq for MathFn {
     }
 }
 
+#[derive(Debug)]
 pub struct NameSpace {
-    variable: Vec<&'static str>,
-    constant: Vec<&'static str>,
-    avail_func: Vec<MathFn>,
+    var: Vec<&'static str>,
+    param: Vec<&'static str>,
+    func: Vec<MathFn>,
 }
 
 impl NameSpace {
     pub fn new() -> Self {
         Self {
-            variable: Vec::new(),
-            constant: Vec::new(),
-            avail_func: Vec::new()
+            var: Vec::new(),
+            param: Vec::new(),
+            func: Vec::new()
         }
     }
     pub fn def_var(&mut self, v: &'static str) -> Result<(), ()> {
         if !self.is_defined(v) {
-            self.variable.push(v);
+            self.var.push(v);
             Ok(())
         } else {
             Err(())
         }
     }
-    pub fn def_const(&mut self, c: &'static str) -> Result<(), ()> {
-        if !self.is_defined(c) {
-            self.constant.push(c);
+    pub fn def_param(&mut self, p: &'static str) -> Result<(), ()> {
+        if !self.is_defined(p) {
+            self.param.push(p);
             Ok(())
         } else {
             Err(())
@@ -106,19 +108,31 @@ impl NameSpace {
     }
     pub fn def_fn(&mut self, f: MathFn) {
         if !self.is_available(&f) {
-            self.avail_func.push(f);
+            self.func.push(f);
         } else {}
     }
     pub fn is_available(&self, f: &MathFn) -> bool {
-        self.avail_func.contains(&f)
+        self.func.contains(&f)
     }
     pub fn is_defined(&self, s: &str) -> bool {
-        self.is_var(s) || self.is_const(s)
+        self.is_var(s) || self.is_param(s)
     }
     pub fn is_var(&self, s: &str) -> bool {
-        self.variable.contains(&s)
+        self.var.contains(&s)
     }
-    pub fn is_const(&self, s: &str) -> bool {
-        self.constant.contains(&s)
+    pub fn is_param(&self, s: &str) -> bool {
+        self.param.contains(&s)
+    }
+}
+
+impl Into<MathFn> for fn(f64) -> f64 {
+    fn into(self) -> MathFn {
+        MathFn::OneArgFn(self)
+    }
+}
+
+impl Into<MathFn> for fn(f64, f64) -> f64 {
+    fn into(self) -> MathFn {
+        MathFn::TwoArgFn(self)
     }
 }

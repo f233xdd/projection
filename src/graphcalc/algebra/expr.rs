@@ -35,9 +35,9 @@ impl<'a> Monomial<'a> {
             self
         }
     }
-    /// set value to some of the constants of the expression
+    /// set value to some of the params of the expression
     /// 
-    /// notice that the value table may contants other constants that is not contained in current expression
+    /// notice that the value table may contants other params that is not contained in current expression
     pub fn set_const_v(&self, v_table: BTreeMap<&'static str, f64>) -> Self {
         let mut new_coef = BTreeMap::new();
         let mut num = *self.coef.get(&"1").unwrap();
@@ -58,7 +58,6 @@ impl<'a> Monomial<'a> {
             namespace: self.namespace
         }
     }
-    // pub fn into_expr() -> Expr {}
 }
 
 pub struct Expr<'a> {
