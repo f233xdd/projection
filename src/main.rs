@@ -22,4 +22,11 @@ fn main() {
         let θ, β, φ: var;
     };
     println!("{:#?}", np);
+    use std::cell::{Cell, RefCell};
+    let cell = Cell::new(1);
+    cell.set(5);
+    println!("{:?}", cell);
+    let ref_cell = RefCell::new(String::new());
+    ref_cell.borrow_mut().push_str("hello");
+    println!("{:?}", ref_cell);
 }
