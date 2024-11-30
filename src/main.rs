@@ -1,5 +1,6 @@
 use std::f64::consts::PI;
 
+use projection::graphcalc::algebra::lexer::Token;
 use projection::graphcalc::algebra::NameSpace;
 use projection::{define, ln, p};
 use projection::graphcalc::interface::CalcDistance;
@@ -29,4 +30,7 @@ fn main() {
     let ref_cell = RefCell::new(String::new());
     ref_cell.borrow_mut().push_str("hello");
     println!("{:?}", ref_cell);
+    use projection::graphcalc::algebra::lexer;
+    let tt = lexer::Node::<lexer::Token>::from_str("123").unwrap();
+    println!("{}", tt.borrow().to_string());
 }

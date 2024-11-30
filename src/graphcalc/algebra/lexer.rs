@@ -1,30 +1,55 @@
 use std::rc::Rc;
 use std::cell::RefCell;
 
-const DIGITAL: &str = "0123456789";
-const SIGN: &str = "_0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZαβγδεζηθικλμνξοπρστυφχψωΑΒΓΔΕΖΗΘΙΚ∧ΜΝΞΟ∏Ρ∑ΤΥΦΧΨΩ";
-const OPERATION: &str = "+-*/^";
-const BRACKET: &str = "()";
-const COMMA: &str = ",";
-const DOT: &str = ".";
+pub const DIGITAL: &'static str = "0123456789";
+pub const SIGN: &'static str = "_0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZαβγδεζηθικλμνξοπρστυφχψωΑΒΓΔΕΖΗΘΙΚ∧ΜΝΞΟ∏Ρ∑ΤΥΦΧΨΩ";
+pub const OPERATION: &'static str = "+-*/^";
+pub const BRACKET: &'static str = "()";
+pub const COMMA: &'static str = ",";
+pub const DOT: &'static str = ".";
+pub const BLANK: &'static str = " \n";
 
-struct Token {
-    next: Vec<Self>,
-    content: String,
-    supr: Option<Rc<RefCell<Token>>>
+pub struct Node<V> {
+    next: Vec<Rc<RefCell<Self>>>,
+    val: V,
+    supr: Option<Rc<RefCell<Self>>>
 }
 
-impl Token {
-    fn to_str(&self) -> String {
-        let mut s = String::new();
-        s.push_str(&self.content);
+pub enum Token {
+    Num(f64),
+    Sign(String),
+    Ops(String),
+    Bracket(),
+    Dot(),
+}
 
-        let mut i = self.next.len();
-        while i != 0 {
-            i = i - 1;
-            s.push_str(&self.next[i].to_str());
+impl ToString for Token {
+    fn to_string(&self) -> String {
+        match self {
+            Self::Num(i) => i.to_string(),
+            Self::Sign(s) => s.clone(),
+            Self::Ops(s) => s.clone(),
+            Self::Bracket() => String::from("()"),
+            Self::Dot() => String::from(", ")
         }
-        s.push_str(&self.next[i].to_str());
+    }
+}
+
+impl<V> Node<V> {
+    pub fn to_string(&self) -> String 
+        where V: ToString
+    {
+        let mut s = String::new();
+        println!("{}", self.val.to_string());
+        if !self.next.is_empty() {
+            s.push_str("(");
+            for i in 0..self.next.len() {
+                s.push_str(&self.next[i].borrow().to_string());
+            }
+            s.push_str(")");
+        } else {
+            s.push_str(&self.val.to_string());
+        }
         return s;
     }
 }
@@ -66,7 +91,7 @@ fn is_sign(s: &str) -> bool {
 }
 
 fn is_operation(s: &str) -> bool {
-    for c in SIGN.chars().into_iter() {
+    for c in OPERATION.chars().into_iter() {
         if s == &c.to_string()[..] {
             return true;
         }
@@ -75,140 +100,215 @@ fn is_operation(s: &str) -> bool {
 }
 
 fn is_bracket(s: &str) -> bool {
-    s == "()" || s == "(" || s == ")"
+    s == BRACKET || s == "(" || s == ")"
 }
 
 fn is_comma(s: &str) -> bool {
-    s == ","
+    s == COMMA
 }
 
 fn is_dot(s: &str) -> bool {
-    s == "."
+    s == DOT
 }
 
-
-fn generate_token_tree(s: &str) -> Result<Rc<RefCell<Token>>, ()> {
-    let root = Rc::new(RefCell::new(Token {next: vec![], content: "()".to_string(), supr: None}));
-    let (mut slow, mut fast, mut depth): (usize, usize, i16) = (0, 0, 0);
-    let mut current_node = root.clone();
-    let mut before = "space";
-    let mut accumulation = String::new();
-    let mut s_vec = vec![];
-    for c in s.to_string().chars().into_iter() {
-        s_vec.push(c.to_string());
-    }
-    let mut have_dot;
-    while fast != s_vec.len() {
-        if is_digital(s_vec[fast].as_str()) {
-            if before == "operation" || before == "space" || before == "left bracket" || before == "comma" {
-                have_dot = false; fast += 1;
-                while fast != s.len() {
-                    if !is_digital(s_vec[fast].as_str()) {
-                        if s_vec[fast].as_str() == DOT {
-                            if have_dot {
-                                panic!();
-                            } else {
-                                have_dot = true;
-                            }
-                        } else {break;}
-                    } else {fast += 1;}
-                }
-                accumulation.clear();
-                for s in s_vec[slow..fast].iter() {
-                    accumulation.push_str(s.as_str());
-                }
-                current_node.borrow_mut().next.push(
-                    Token {next: vec![], content: accumulation.clone(), supr: Some(current_node.clone())}
-                );
-                slow = fast;
-                before = "num";
-            } else {
-                panic!();
-            }
-        } else if is_sign(s_vec[fast].as_str()) {
-            if before == "operation" || before == "space" || before == "left bracket" || before == "comma" {
-                fast += 1;
-                while fast != s_vec.len() {
-                    if !is_digital(s_vec[fast].as_str()) {
-                        break;
-                    } else {fast += 1;}
-                }
-                accumulation.clear();
-                for s in s_vec[slow..fast].iter() {
-                    accumulation.push_str(s.as_str());
-                }
-                current_node.borrow_mut().next.push(
-                    Token {next: vec![], content: accumulation.clone(), supr: Some(current_node.clone())}
-                );
-                slow = fast;
-                before = "sign";
-            } else {
-                panic!();
-            }
-        } else if is_operation(s_vec[fast].as_str()) {
-            if (before == "num" || before == "sign" || before == "right bracket") 
-            || ((s_vec[fast].as_str() == "+" || s_vec[fast].as_str() == "-")
-            && (before == "space" || before == "left bracket" || before == "comma")) {
-                fast += 1; slow = fast;
-                current_node.borrow_mut().next.push(
-                    Token {next: vec![], content: s_vec[fast].to_string(), supr: Some(current_node.clone())}
-                );
-            } else {
-                panic!();
-            }
-        } else if s_vec[fast].as_str() == "(" {
-            if before == "sign" || before == "operation" || before == "space" || before == "left bracket" || before == "comma" {
-                fast += 1; slow = fast; depth += 1;
-                current_node = Rc::new(RefCell::new(Token {next: vec![], content: "()".to_string(), supr: Some(current_node)}));
-                before = "left bracket";
-            } else {
-                panic!();
-            }
-        } else if s_vec[fast].as_str() == ")" {
-            if before == "num" || before == "sign" {
-                fast += 1; slow = fast; depth += -1;
-                let tmp = current_node.borrow().supr.clone().unwrap();
-                current_node = tmp.clone();
-                before = "right bracket";
-            } else {
-                panic!();
-            }
-        } else if s_vec[fast].as_str() == "," {
-            if before == "num" || before == "sign" || before == "right bracket" {
-                fast += 1; slow = fast;
-                current_node.borrow_mut().next.push(
-                    Token {next: vec![], content: ",".to_string(), supr: Some(current_node.clone())}
-                );
-                before = "comma";
-            } else {
-                panic!();
-            }
-        } else if s_vec[fast].as_str() == " " {
-            fast += 1; slow = fast;
-        } else {
-            panic!();
+fn is_blank(s: &str) -> bool {
+    for c in BLANK.chars().into_iter() {
+        if s == &c.to_string()[..] {
+            return true;
         }
     }
-    if depth != 0 {
-        panic!();
-    } else if before == "space" {
-        root.borrow_mut().next.push(
-            Token { next: vec![], content: "0".to_string(), supr: Some(root.clone()) }
-        );
-        return Ok(root);
-    } else if before == "left bracket" || before == "comma"{
-        panic!();
-    } else {
-        return Ok(root);
+    return false;
+}
+
+impl Node<Token> {
+    pub fn from_str(s: &str)  -> Result<Rc<RefCell<Node<Token>>>, String> {
+        Self::_from_str(s, &0, s)
+    }
+    fn _from_str(s: &str, i: &usize, whole: &str) -> Result<Rc<RefCell<Node<Token>>>, String> {
+        let root = Rc::new(RefCell::new(
+            Node {next: vec![], val: Token::Bracket(), supr: None}
+        ));
+        let (mut slow, mut fast, mut depth): (usize, usize, u16) = (0, 0, 0);
+        let mut bf = "space";
+        let mut s_vec = vec![];
+        for c in s.to_string().chars().into_iter() {
+            s_vec.push(c.to_string());
+        }
+        let mut have_dot: bool;
+        let mut acc = String::new();
+        let mut err_msg = String::from("");
+        'outer: while fast != s_vec.len() {
+            if is_digital(s_vec[fast].as_str()) {
+                if bf == "operation" || bf == "space" || bf == "comma" {
+                    have_dot = false; fast += 1;
+                    while fast != s.len() {
+                        if !is_digital(s_vec[fast].as_str()) {
+                            if is_dot(s_vec[fast].as_str()) {
+                                if have_dot {
+                                    err_msg = format!("at {}: unexpected dot.", i+fast+1);
+                                    break 'outer;
+                                } else {
+                                    have_dot = true;
+                                    fast += 1;
+                                }
+                            } else {
+                                break;
+                            }
+                        } else { fast += 1; }
+                    }
+                    acc.clear();
+                    for s in s_vec[slow..fast].iter() {
+                        acc.push_str(s.as_str());
+                    }
+                    root.borrow_mut().next.push(
+                        Rc::new(RefCell::new(
+                            Node {
+                                next: vec![], 
+                                val: Token::Num(acc.parse::<f64>().unwrap()), 
+                                supr: Some(root.clone())
+                            }
+                        ))
+                    );
+                    slow = fast;
+                    bf = "num";
+                } else {
+                    err_msg = format!("at {}: {bf} can't be followed by num.", i+fast+1);
+                    break;
+                }
+            } else if is_sign(s_vec[fast].as_str()) {
+                if bf == "operation" || bf == "space" || bf == "comma" {
+                    fast += 1;
+                    while fast != s_vec.len() {
+                        if !is_sign(s_vec[fast].as_str()) && !is_digital(s_vec[fast].as_str()) {
+                            break;
+                        } else { fast += 1; }
+                    }
+                    acc.clear();
+                    for s in s_vec[slow..fast].iter() {
+                        acc.push_str(s.as_str());
+                    }
+                    root.borrow_mut().next.push(
+                        Rc::new(RefCell::new(
+                            Node {
+                                next: vec![], 
+                                val: Token::Sign(acc.clone()), 
+                                supr: Some(root.clone())
+                            }
+                        ))
+                    );
+                    slow = fast;
+                    bf = "sign";
+                } else {
+                    err_msg = format!("at {}: {bf} can't be followed by sign.", i+fast+1);
+                    break;
+                }
+            } else if is_operation(s_vec[fast].as_str()) {
+                if (bf == "num" || bf == "sign" || bf == "right bracket") 
+                || ((s_vec[fast].as_str() == "+" || s_vec[fast].as_str() == "-")
+                && (bf == "space" || bf == "comma")) {
+                    root.borrow_mut().next.push(
+                        Rc::new(RefCell::new(
+                            Node {
+                                next: vec![], 
+                                val: Token::Ops(s_vec[fast].clone()), 
+                                supr: Some(root.clone())
+                            }
+                        ))
+                    );
+                    fast += 1; slow = fast;
+                    bf = "operation"
+                } else {
+                    err_msg = format!("at {}: {bf} can't be followed by operation '{}'.", i+fast+1, s_vec[fast].as_str());
+                    break;
+                }
+            } else if s_vec[fast].as_str() == "(" {
+                if bf == "sign" || bf == "operation" || bf == "space" || bf == "comma" {
+                    fast += 1; slow = fast; depth += 1;
+                    while fast != s_vec.len() {
+                        if s_vec[fast].as_str() == "(" { depth += 1; }
+                        else if s_vec[fast].as_str() == ")" {
+                            depth = depth - 1;
+                            if depth == 0 {
+                                acc.clear();
+                                for s in s_vec[slow..fast].iter() {
+                                    acc.push_str(s.as_str());
+                                }
+                                root.borrow_mut().next.push(
+                                    Node::_from_str(acc.as_str(), &(&slow+i), whole).unwrap()
+                                );
+                                break
+                            } else {}
+                        }
+                        else {}
+                        fast += 1;
+                    }
+                    if depth != 0 { 
+                        err_msg = format!("at {}: bracket is not closed.", i+fast+1);
+                        break;
+                    }
+                    else { fast += 1; slow = fast; bf = "right bracket"; }
+                } else {
+                    err_msg = format!("at {}: {bf} can't be followed by left bracket.", i+fast+1);
+                    break;
+                }
+            } else if is_comma(s_vec[fast].as_str()) {
+                if bf == "num" || bf == "sign" || bf == "right bracket" {
+                    fast += 1; slow = fast;
+                    root.borrow_mut().next.push(
+                        Rc::new(RefCell::new(
+                            Node {
+                                next: vec![], 
+                                val: Token::Dot(), 
+                                supr: Some(root.clone())
+                            }
+                        ))
+                    );
+                    bf = "comma";
+                } else {
+                    err_msg = format!("at {}: {bf} can't be followed by comma.", i+fast+1);
+                    break;
+                }
+            } else if is_blank(s_vec[fast].as_str()) {
+                fast += 1; slow = fast;
+            } else {
+                if s_vec[fast].as_str() == ")" {
+                    err_msg = format!("at {}: bracket is not closed.", i+fast+1);
+                } else {
+                    err_msg = format!("at {}: invalid token.", i+fast+1);
+                }
+                break;
+            }
+        }
+        if err_msg != "" {
+            return Err(err_msg);
+        } else if root.borrow().next.is_empty() {
+            root.borrow_mut().next.push(
+                Rc::new(RefCell::new(
+                    Node {
+                        next: vec![], 
+                        val: Token::Num(0.0), 
+                        supr: Some(root.clone())
+                    }
+                ))
+            );
+            return Ok(root);
+        } else if bf == "operation" || bf == "comma" {
+            Err(format!("at {}: expr can't end with {bf}.", i+fast+1))
+        } else {
+            return Ok(root);
+        }
     }
 }
 
 #[test]
-fn test_is_digital() {
-    println!("{}", is_digital("12325"));
-    println!("{}", is_digital("12325s"));
-    println!("{}", is_digital(".112325s"));
-    println!("{}", is_sign("sWXYZαβγ"));
-    let t = generate_token_tree("2*3*4");
-    println!("{}", t.unwrap().borrow().to_str().as_str());
+fn test_parse() {
+    // println!("{}", is_digital("12325"));
+    // println!("{}", is_digital("12325s"));
+    // println!("{}", is_digital(".112325s"));
+    // println!("{}", is_sign("sWXYZαβγ"));
+    let t = Node::from_str(
+        "abs(2*lg(pow(cos(abs(a*x*(2.012)^(-a))), 5)-λ)*x^2+3*tan(sh(λ*y^5*z+x)+z))-  
+        3*pow(sin(-abs(x^a-φ)*y)-b^3*c^(-5)+10*ln(sec(x*z^(e^x)-2^c)), a/b)*lg(abs(x)) "
+    );
+    println!("{}", t.unwrap().borrow().to_string().as_str());
 }
