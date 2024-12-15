@@ -1,43 +1,73 @@
+use std::rc::Rc;
+use std::cell::RefCell;
+
 use super::expr::*;
+
+pub struct Node<V> {
+    next: Vec<Rc<RefCell<Self>>>,
+    val: V,
+    supr: Option<Rc<RefCell<Self>>>
+}
+
+impl<V> Node<V> {
+    pub fn new(    
+        next: Vec<Rc<RefCell<Self>>>,
+        val: V,
+        supr: Option<Rc<RefCell<Self>>>
+    ) -> Self { Self { next, val, supr } }
+    pub fn val(&self) -> &V {
+        &self.val
+    }
+    pub fn val_mut(&mut self) -> &mut V {
+        &mut self.val
+    }
+    pub fn next(&self) -> &Vec<Rc<RefCell<Self>>> {
+        &self.next
+    }
+    pub fn next_mut(&mut self) -> &mut Vec<Rc<RefCell<Self>>> {
+        &mut self.next
+    }
+    pub fn supr(&self) -> &Option<Rc<RefCell<Self>>> {
+        &self.supr
+    }
+    pub fn supr_mut(&mut self) -> &mut Option<Rc<RefCell<Self>>> {
+        &mut self.supr
+    }
+}
 
 enum OneArgFnType<'a> {
     InitFn(fn(f64, f64) -> f64, Expr<'a>),
     Fn(fn(f64) -> f64),
 }
 
-enum Node<'a> {
-    // $coef * $($func)* ( $($mono)* + $($next)* )
-    Add{
+struct ExprCell<'a> {
+    mono: Vec<Monomial<'a>>,
+    func: Vec<OneArgFnType<'a>>,
+    coef: f64,
+}
+
+impl<'a> ExprCell<'a> {
+    fn new(
         mono: Vec<Monomial<'a>>,
         func: Vec<OneArgFnType<'a>>,
         coef: f64,
-        next: Vec<Box<Node<'a>>>,
-        supr: Option<&'a Node<'a>>,
-    },
-    // $coef * $($func)* ( $mono * $($next)* )
-    Mul{
-        mono: Monomial<'a>,
-        func: Vec<OneArgFnType<'a>>,
-        coef: f64,
-        next: Vec<Box<Node<'a>>>,
-        supr: Option<&'a Node<'a>>,
-    },
+    ) -> Self { Self { mono, func, coef } }
 }
 
+type ExprCellNode<'a> = Rc<RefCell<Node<ExprCell<'a>>>>;
+
 pub struct ExprTree<'a> {
-    root: Node<'a>
+    root: ExprCellNode<'a>
 }
 
 impl<'a> ExprTree<'a> {
     pub fn new() -> Self {
         Self {
-            root: Node::Add { 
-                mono: Vec::new(),
-                func: Vec::new(),
-                coef: 0.0,
-                next: Vec::new(),
-                supr: None,
-            }
+            root: Rc::new(RefCell::new(Node::new(
+                vec![], 
+                ExprCell::new(vec![], vec![], 1.0),
+                None
+            )))
         }
     }
 }

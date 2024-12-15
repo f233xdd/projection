@@ -1,5 +1,6 @@
 use std::rc::Rc;
 use std::cell::RefCell;
+use super::tree::Node;
 
 pub const DIGITAL: &'static str = "0123456789";
 pub const SIGN: &'static str = "_0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZαβγδεζηθικλμνξοπρστυφχψωΑΒΓΔΕΖΗΘΙΚ∧ΜΝΞΟ∏Ρ∑ΤΥΦΧΨΩ";
@@ -8,12 +9,6 @@ pub const BRACKET: &'static str = "()";
 pub const COMMA: &'static str = ",";
 pub const DOT: &'static str = ".";
 pub const BLANK: &'static str = " \n";
-
-pub struct Node<V> {
-    next: Vec<Rc<RefCell<Self>>>,
-    val: V,
-    supr: Option<Rc<RefCell<Self>>>
-}
 
 pub enum Token {
     Num(f64),
@@ -40,15 +35,15 @@ impl<V> Node<V> {
         where V: ToString
     {
         let mut s = String::new();
-        println!("{}", self.val.to_string());
-        if !self.next.is_empty() {
+        println!("{}", self.val().to_string());
+        if !self.next().is_empty() {
             s.push_str("(");
-            for i in 0..self.next.len() {
-                s.push_str(&self.next[i].borrow().to_string());
+            for i in 0..self.next().len() {
+                s.push_str(&self.next()[i].borrow().to_string());
             }
             s.push_str(")");
         } else {
-            s.push_str(&self.val.to_string());
+            s.push_str(&self.val().to_string());
         }
         return s;
     }
@@ -120,13 +115,15 @@ fn is_blank(s: &str) -> bool {
     return false;
 }
 
+type RcRefCellTokenNode = Rc<RefCell<Node<Token>>>;
+
 impl Node<Token> {
-    pub fn from_str(s: &str)  -> Result<Rc<RefCell<Node<Token>>>, String> {
-        Self::_from_str(s, &0, s)
+    pub fn from_str(s: &str)  -> Result<RcRefCellTokenNode, String> {
+        Self::_from_str(s, 0, s)
     }
-    fn _from_str(s: &str, i: &usize, whole: &str) -> Result<Rc<RefCell<Node<Token>>>, String> {
+    fn _from_str(s: &str, i: usize, whole: &str) -> Result<Rc<RefCell<Node<Token>>>, String> {
         let root = Rc::new(RefCell::new(
-            Node {next: vec![], val: Token::Bracket(), supr: None}
+            Node::new(vec![], Token::Bracket(), None)
         ));
         let (mut slow, mut fast, mut depth): (usize, usize, u16) = (0, 0, 0);
         let mut bf = "space";
@@ -134,10 +131,10 @@ impl Node<Token> {
         for c in s.to_string().chars().into_iter() {
             s_vec.push(c.to_string());
         }
-        let mut have_dot: bool;
+        let mut have_dot;
         let mut acc = String::new();
         let mut err_msg = String::from("");
-        'outer: while fast != s_vec.len() {
+        'bottom: while fast != s_vec.len() {
             if is_digital(s_vec[fast].as_str()) {
                 if bf == "operation" || bf == "space" || bf == "comma" {
                     have_dot = false; fast += 1;
@@ -146,7 +143,7 @@ impl Node<Token> {
                             if is_dot(s_vec[fast].as_str()) {
                                 if have_dot {
                                     err_msg = format!("at {}: unexpected dot.", i+fast+1);
-                                    break 'outer;
+                                    break 'bottom;
                                 } else {
                                     have_dot = true;
                                     fast += 1;
@@ -160,13 +157,9 @@ impl Node<Token> {
                     for s in s_vec[slow..fast].iter() {
                         acc.push_str(s.as_str());
                     }
-                    root.borrow_mut().next.push(
+                    root.borrow_mut().next_mut().push(
                         Rc::new(RefCell::new(
-                            Node {
-                                next: vec![], 
-                                val: Token::Num(acc.parse::<f64>().unwrap()), 
-                                supr: Some(root.clone())
-                            }
+                            Node::new(vec![], Token::Num(acc.parse::<f64>().unwrap()), Some(root.clone()))
                         ))
                     );
                     slow = fast;
@@ -187,13 +180,9 @@ impl Node<Token> {
                     for s in s_vec[slow..fast].iter() {
                         acc.push_str(s.as_str());
                     }
-                    root.borrow_mut().next.push(
+                    root.borrow_mut().next_mut().push(
                         Rc::new(RefCell::new(
-                            Node {
-                                next: vec![], 
-                                val: Token::Sign(acc.clone()), 
-                                supr: Some(root.clone())
-                            }
+                            Node::new(vec![], Token::Sign(acc.clone()), Some(root.clone()))
                         ))
                     );
                     slow = fast;
@@ -206,13 +195,9 @@ impl Node<Token> {
                 if (bf == "num" || bf == "sign" || bf == "right bracket") 
                 || ((s_vec[fast].as_str() == "+" || s_vec[fast].as_str() == "-")
                 && (bf == "space" || bf == "comma")) {
-                    root.borrow_mut().next.push(
+                    root.borrow_mut().next_mut().push(
                         Rc::new(RefCell::new(
-                            Node {
-                                next: vec![], 
-                                val: Token::Ops(s_vec[fast].clone()), 
-                                supr: Some(root.clone())
-                            }
+                            Node::new(vec![], Token::Ops(s_vec[fast].clone()), Some(root.clone()))
                         ))
                     );
                     fast += 1; slow = fast;
@@ -233,8 +218,8 @@ impl Node<Token> {
                                 for s in s_vec[slow..fast].iter() {
                                     acc.push_str(s.as_str());
                                 }
-                                root.borrow_mut().next.push(
-                                    Node::_from_str(acc.as_str(), &(&slow+i), whole).unwrap()
+                                root.borrow_mut().next_mut().push(
+                                    Self::_from_str(acc.as_str(), slow+i, whole).unwrap()
                                 );
                                 break
                             } else {}
@@ -254,13 +239,9 @@ impl Node<Token> {
             } else if is_comma(s_vec[fast].as_str()) {
                 if bf == "num" || bf == "sign" || bf == "right bracket" {
                     fast += 1; slow = fast;
-                    root.borrow_mut().next.push(
+                    root.borrow_mut().next_mut().push(
                         Rc::new(RefCell::new(
-                            Node {
-                                next: vec![], 
-                                val: Token::Dot(), 
-                                supr: Some(root.clone())
-                            }
+                            Node::new(vec![], Token::Dot(), Some(root.clone()))
                         ))
                     );
                     bf = "comma";
@@ -281,14 +262,10 @@ impl Node<Token> {
         }
         if err_msg != "" {
             return Err(err_msg);
-        } else if root.borrow().next.is_empty() {
-            root.borrow_mut().next.push(
+        } else if root.borrow().next().is_empty() {
+            root.borrow_mut().next_mut().push(
                 Rc::new(RefCell::new(
-                    Node {
-                        next: vec![], 
-                        val: Token::Num(0.0), 
-                        supr: Some(root.clone())
-                    }
+                    Node::new(vec![], Token::Num(0.0), Some(root.clone()))
                 ))
             );
             return Ok(root);
@@ -307,8 +284,8 @@ fn test_parse() {
     // println!("{}", is_digital(".112325s"));
     // println!("{}", is_sign("sWXYZαβγ"));
     let t = Node::from_str(
-        "abs(2*lg(pow(cos(abs(a*x*(2.012)^(-a))), 5)-λ)*x^2+3*tan(sh(λ*y^5*z+x)+z))-  
-        3*pow(sin(-abs(x^a-φ)*y)-b^3*c^(-5)+10*ln(sec(x*z^(e^x)-2^c)), a/b)*lg(abs(x)) "
+        "abs(2*lg(pow(cos(abs(a*x*(2.012)^(-a))), 5)-λ)*x^2+3*tan(sh(λ*y^5*z+x)+z))-
+        3*pow(sin(-abs(x^a-φ)*y)-b^3*c^(-5)+10*ln(sec(x*z^(e^x)-2^c)), a/b)*lg(abs(x))"
     );
     println!("{}", t.unwrap().borrow().to_string().as_str());
 }

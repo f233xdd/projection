@@ -86,84 +86,84 @@ macro_rules! vector {
 #[macro_export]
 macro_rules! define {
 
-    (using namespace $np:expr;) => {};
+    (using namespace $ns:expr;) => {};
     (
-        using namespace $np:expr;
+        using namespace $ns:expr;
         $($tail:tt)*
     ) => {
         define! {
-            in namespace $np; 
+            in $ns; 
             $($tail)*
         };
     };
 
     (
-        in namespace $np:expr;
+        in $ns:expr;
         let $($s:ident),*: var;
     ) => {
-        $($np.def_var(stringify!($s)).unwrap();)*
+        $($ns.def_var(stringify!($s)).unwrap();)*
     };
     (
-        in namespace $np:expr;
+        in $ns:expr;
         let $($s:ident),*: var;
         $($tail:tt)*
     ) => {
-        $($np.def_var(stringify!($s)).unwrap();)*
+        $($ns.def_var(stringify!($s)).unwrap();)*
         define! {
-            in namespace $np;
+            in $ns;
             $($tail)*
         }
     };
 
     (
-        in namespace $np:expr;
+        in $ns:expr;
         let $($s:ident),*: param;
     ) => {
-        $($np.def_param(stringify!($s)).unwrap();)*
+        $($ns.def_param(stringify!($s)).unwrap();)*
     };
     (
-        in namespace $np:expr;
+        in $ns:expr;
         let $($s:ident),*: param;
         $($tail:tt)*
     ) => {
-        $($np.def_param(stringify!($s)).unwrap();)*
+        $($ns.def_param(stringify!($s)).unwrap();)*
         define! {
-            in namespace $np;
+            in $ns;
             $($tail)*
         }
     };
 
-    (
-        in namespace $np:expr;
+    ( // TODO: built-in function pack, native-defined functions and extern functions
+        in $ns:expr;
         fn $func:expr => (f64);
     ) => {
-        $np.def_fn(($func as fn(f64) -> f64).into());
+        $ns.def_fn(($func as fn(f64) -> f64).into());
     };
     (
-        in namespace $np:expr;
+        in $ns:expr;
         fn $func:expr => (f64);
         $($tail:tt)*
     ) => {
-        $np.def_fn(($func as fn(f64) -> f64).into());
+        $ns.def_fn(($func as fn(f64) -> f64).into());
         define! {
-            in namespace $np;
+            in $ns;
             $($tail)*
         }
     };
     (
-        in namespace $np:expr;
+        in $ns:expr;
         fn $func:expr => (f64, f64);
     ) => {
-        $np.def_fn(($func as fn(f64, f64) -> f64).into());
+        $ns.def_fn(($func as fn(f64, f64) -> f64).into());
     };
     (
-        in namespace $np:expr;
+        in $ns:expr;
         fn $func:expr => (f64, f64);
         $($tail:tt)*
     ) => {
-        $np.def_fn(($func as fn(f64, f64) -> f64).into());
+        $ns.def_fn(($func as fn(f64, f64) -> f64).into());
         define! {
-            in namespace $np;
+            in $ns;
             $($tail)*
         }
     };
