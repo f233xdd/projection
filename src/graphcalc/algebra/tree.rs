@@ -1,3 +1,4 @@
+use std::collections::BTreeMap;
 use std::rc::Rc;
 use std::cell::RefCell;
 
@@ -15,24 +16,12 @@ impl<V> Node<V> {
         val: V,
         supr: Option<Rc<RefCell<Self>>>
     ) -> Self { Self { next, val, supr } }
-    pub fn val(&self) -> &V {
-        &self.val
-    }
-    pub fn val_mut(&mut self) -> &mut V {
-        &mut self.val
-    }
-    pub fn next(&self) -> &Vec<Rc<RefCell<Self>>> {
-        &self.next
-    }
-    pub fn next_mut(&mut self) -> &mut Vec<Rc<RefCell<Self>>> {
-        &mut self.next
-    }
-    pub fn supr(&self) -> &Option<Rc<RefCell<Self>>> {
-        &self.supr
-    }
-    pub fn supr_mut(&mut self) -> &mut Option<Rc<RefCell<Self>>> {
-        &mut self.supr
-    }
+    pub fn val(&self) -> &V { &self.val}
+    pub fn val_mut(&mut self) -> &mut V { &mut self.val }
+    pub fn next(&self) -> &Vec<Rc<RefCell<Self>>> { &self.next }
+    pub fn next_mut(&mut self) -> &mut Vec<Rc<RefCell<Self>>> { &mut self.next }
+    pub fn supr(&self) -> &Option<Rc<RefCell<Self>>> { &self.supr }
+    pub fn supr_mut(&mut self) -> &mut Option<Rc<RefCell<Self>>> { &mut self.supr }
 }
 
 enum OneArgFnType<'a> {
@@ -41,14 +30,14 @@ enum OneArgFnType<'a> {
 }
 
 struct ExprCell<'a> {
-    mono: Vec<Monomial<'a>>,
+    mono: MultiMonomial<'a>,
     func: Vec<OneArgFnType<'a>>,
     coef: f64,
 }
 
 impl<'a> ExprCell<'a> {
     fn new(
-        mono: Vec<Monomial<'a>>,
+        mono: MultiMonomial<'a>,
         func: Vec<OneArgFnType<'a>>,
         coef: f64,
     ) -> Self { Self { mono, func, coef } }
@@ -65,7 +54,7 @@ impl<'a> ExprTree<'a> {
         Self {
             root: Rc::new(RefCell::new(Node::new(
                 vec![], 
-                ExprCell::new(vec![], vec![], 1.0),
+                ExprCell::new(MultiMonomial::new(vec![]), vec![], 1.0),
                 None
             )))
         }
@@ -84,7 +73,7 @@ impl PartialEq for MathFn {
             Self::OneArgFn(f1) => {
                 match other {
                     Self::OneArgFn(f2) => {
-                        if f1 == f2 {true} else {false}
+                        f1 == f2
                     },
                     Self::TwoArgFn(_) => {
                         false
@@ -97,7 +86,7 @@ impl PartialEq for MathFn {
                         false
                     },
                     Self::TwoArgFn(f2) => {
-                        if f1 == f2 {true} else {false}
+                        f1 == f2
                     }
                 }
             }
@@ -107,30 +96,40 @@ impl PartialEq for MathFn {
 
 #[derive(Debug)]
 pub struct NameSpace {
-    var: Vec<&'static str>,
-    param: Vec<&'static str>,
+    vars: Vec<String>,
+    params: Vec<String>,
+    consts: BTreeMap<String, f64>,
     func: Vec<MathFn>,
 }
 
 impl NameSpace {
     pub fn new() -> Self {
         Self {
-            var: Vec::new(),
-            param: Vec::new(),
+            vars: Vec::new(),
+            params: Vec::new(),
+            consts: BTreeMap::new(),
             func: Vec::new()
         }
     }
-    pub fn def_var(&mut self, v: &'static str) -> Result<(), ()> {
+    pub fn def_var(&mut self, v: &str) -> Result<(), ()> {
         if !self.is_defined(v) {
-            self.var.push(v);
+            self.vars.push(v.to_string());
             Ok(())
         } else {
             Err(())
         }
     }
-    pub fn def_param(&mut self, p: &'static str) -> Result<(), ()> {
+    pub fn def_param(&mut self, p: &str) -> Result<(), ()> {
         if !self.is_defined(p) {
-            self.param.push(p);
+            self.params.push(p.to_string());
+            Ok(())
+        } else {
+            Err(())
+        }
+    }
+    pub fn def_const(&mut self, c: &str, val: f64) -> Result<(), ()> {
+        if !self.is_defined(c) {
+            self.consts.insert(c.to_string(), val);
             Ok(())
         } else {
             Err(())
@@ -144,14 +143,18 @@ impl NameSpace {
     pub fn is_available(&self, f: &MathFn) -> bool {
         self.func.contains(&f)
     }
+    /// detect whether s is defined as a name of var/param/const
     pub fn is_defined(&self, s: &str) -> bool {
-        self.is_var(s) || self.is_param(s)
+        self.is_var(s) || self.is_param(s) || self.is_const(s)
     }
     pub fn is_var(&self, s: &str) -> bool {
-        self.var.contains(&s)
+        self.vars.contains(&s.to_string())
     }
     pub fn is_param(&self, s: &str) -> bool {
-        self.param.contains(&s)
+        self.params.contains(&s.to_string())
+    }
+    pub fn is_const(&self, s: &str) -> bool {
+        self.consts.contains_key(s)
     }
 }
 
@@ -166,3 +169,4 @@ impl Into<MathFn> for fn(f64, f64) -> f64 {
         MathFn::TwoArgFn(self)
     }
 }
+

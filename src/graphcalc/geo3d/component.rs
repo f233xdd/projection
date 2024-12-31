@@ -1,13 +1,16 @@
 use std::fmt;
 
-use crate::graphcalc::algebra::calc::approximate;
-
 use super::{
     tool::*,
-    SpaceVector,
-    err,
-    Geo3DResult,
-    super::interface
+    super::{
+        algebra::{
+            vector::SpaceVec,
+            calc::approximate,
+        },
+        geo_err,
+        GeoResult,
+        interface,
+    },
 };
 
 // 3D part
@@ -76,18 +79,18 @@ pub struct Line {
 
 impl Line {
     pub fn new(k11: f64, k12: f64, k13: f64, b1: f64,
-                k21: f64, k22: f64, k23: f64, b2: f64) -> Result<Self, err::InvalidFnArgError> {
+                k21: f64, k22: f64, k23: f64, b2: f64) -> Result<Self, geo_err::InvalidFnArgError> {
         if !approximate(k11*k22, k12*k21) || !approximate(k11*k23, k13*k21) {
             Ok(Self {fn_args: ((k11, k12, k13, b1), (k21, k22, k23, b2))})
         } else {
-            Err(err::InvalidFnArgError())
+            Err(geo_err::InvalidFnArgError())
         }
     }
 
-    pub fn from_p(p1: &Point, p2: &Point) -> Result<Self, err::InvalidFnArgError> {
+    pub fn from_p(p1: &Point, p2: &Point) -> Result<Self, geo_err::InvalidFnArgError> {
         match calc_line_fn(p1, p2) {
             Ok(func_args) => Ok(Self {fn_args: func_args}),
-            Err(()) => Err(err::InvalidFnArgError())
+            Err(()) => Err(geo_err::InvalidFnArgError())
         }
     }
 
@@ -95,9 +98,9 @@ impl Line {
         self.fn_args
     }
 
-    pub fn get_direction_vec(&self) -> SpaceVector {
+    pub fn get_direction_vec(&self) -> SpaceVec {
         let ((k11, k12, k13, _), (k21, k22, k23, _)) = self.fn_args();
-        SpaceVector::new(k13*k22-k12*k23, k11*k23-k13*k21, k12*k21-k11*k22)
+        SpaceVec::new([k13*k22-k12*k23, k11*k23-k13*k21, k12*k21-k11*k22])
     }
 }
 
@@ -226,8 +229,8 @@ impl interface::CalcDistance<Line, f64> for Line {
     }
 }
 
-impl interface::CalcDistance<Plane, Geo3DResult<f64>> for Line {
-    fn calc_d(&self, cpt: &Plane) -> Geo3DResult<f64> {
+impl interface::CalcDistance<Plane, GeoResult<f64>> for Line {
+    fn calc_d(&self, cpt: &Plane) -> GeoResult<f64> {
         Ok(calc_line_plane_d(self, cpt)?)
     }
 }
@@ -244,14 +247,14 @@ impl interface::CalcAngle<Plane> for Line {
     }
 }
 
-impl interface::CalcIntersection<Line, Geo3DResult<Point>> for Line {
-    fn calc_intersection(&self, cpt: &Line) -> Geo3DResult<Point> {
+impl interface::CalcIntersection<Line, GeoResult<Point>> for Line {
+    fn calc_intersection(&self, cpt: &Line) -> GeoResult<Point> {
         Ok(calc_line_intersection(self, cpt)?)
     }
 }
 
-impl interface::CalcIntersection<Plane, Geo3DResult<Point>> for Line {
-    fn calc_intersection(&self, cpt: &Plane) -> Geo3DResult<Point> {
+impl interface::CalcIntersection<Plane, GeoResult<Point>> for Line {
+    fn calc_intersection(&self, cpt: &Plane) -> GeoResult<Point> {
         Ok(calc_line_plane_intersection(self, cpt)?)
     }
 }
@@ -263,15 +266,15 @@ pub struct Plane {
 
 impl Plane {
     /// k1 * x + k2 * y + k3 * z = b
-    pub fn new(k1: f64, k2: f64, k3: f64, b: f64) -> Result<Self, err::InvalidFnArgError> {
+    pub fn new(k1: f64, k2: f64, k3: f64, b: f64) -> Result<Self, geo_err::InvalidFnArgError> {
         if k1 == 0.0 && k2 == 0.0 && k3 == 0.0 {
-            Err(err::InvalidFnArgError())
+            Err(geo_err::InvalidFnArgError())
         } else {
             Ok(Self {func_args: (k1, k2, k3, b)})
         }
     }
 
-    pub fn from_p(p1: &Point, p2: &Point, p3: &Point) -> Result<Self, err::InvalidFnArgError>  {
+    pub fn from_p(p1: &Point, p2: &Point, p3: &Point) -> Result<Self, geo_err::InvalidFnArgError>  {
         match calc_plane_fn(p1, p2, p3) {
             Ok(fn_args) => Ok(Self {func_args: fn_args}),
             Err(e) => Err(e)
@@ -282,8 +285,8 @@ impl Plane {
         self.func_args
     }
 
-    pub fn get_normal_vec(&self) -> SpaceVector {
-        SpaceVector::new(self.func_args.0, self.func_args.1, self.func_args.2)
+    pub fn get_normal_vec(&self) -> SpaceVec {
+        SpaceVec::new([self.func_args.0, self.func_args.1, self.func_args.2])
     }
 
     // in the case that one is on the plane while the other is not, it returns true
@@ -377,14 +380,14 @@ impl interface::CalcDistance<Point, f64> for Plane {
     }
 }
 
-impl interface::CalcDistance<Line, Geo3DResult<f64>> for Plane {
-    fn calc_d(&self, cpt: &Line) -> Geo3DResult<f64> {
+impl interface::CalcDistance<Line, GeoResult<f64>> for Plane {
+    fn calc_d(&self, cpt: &Line) -> GeoResult<f64> {
         Ok(calc_line_plane_d(cpt, self)?)
     }
 }
 
-impl interface::CalcDistance<Plane, Geo3DResult<f64>> for Plane {
-    fn calc_d(&self, cpt: &Plane) -> Geo3DResult<f64> {
+impl interface::CalcDistance<Plane, GeoResult<f64>> for Plane {
+    fn calc_d(&self, cpt: &Plane) -> GeoResult<f64> {
         Ok(calc_plane_d(self, cpt)?)
     }
 }
@@ -401,14 +404,14 @@ impl interface::CalcAngle<Plane> for Plane {
     }
 }
 
-impl interface::CalcIntersection<Line, Geo3DResult<Point>> for Plane {
-    fn calc_intersection(&self, cpt: &Line) -> Geo3DResult<Point> {
+impl interface::CalcIntersection<Line, GeoResult<Point>> for Plane {
+    fn calc_intersection(&self, cpt: &Line) -> GeoResult<Point> {
         Ok(calc_line_plane_intersection(cpt, self)?)
     }
 }
 
-impl interface::CalcIntersection<Plane, Geo3DResult<Line>> for Plane {
-    fn calc_intersection(&self, cpt: &Plane) -> Geo3DResult<Line> {
+impl interface::CalcIntersection<Plane, GeoResult<Line>> for Plane {
+    fn calc_intersection(&self, cpt: &Plane) -> GeoResult<Line> {
         Ok(calc_plane_intersection(self, cpt)?)
     }
 }

@@ -75,11 +75,11 @@ macro_rules! pn {
 macro_rules! vector {
     // 2D
     ($x:expr, $y:expr) => {
-        $crate::graphcalc::geo2d::PlaneVector::new($x, $y)
+        $crate::graphcalc::algebra::vector::PlaneVec::new([$x, $y])
     };
     // 3D
     ($x:expr, $y:expr, $z:expr) => {
-        $crate::graphcalc::geo3d::SpaceVector::new($x, $y, $z)
+        $crate::graphcalc::algebra::vector::SpaceVec::new([$x, $y, $z])
     }
 }
 

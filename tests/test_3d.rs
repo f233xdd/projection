@@ -25,7 +25,7 @@ fn test_vec_calc() {
     assert!(&a+&b == vector!(-3.0, 7.0, 5.0));
     assert!(&a-&b == vector!(9.0, 1.0, 1.0));
     assert!(&a*&b == 0.0);
-    assert!(&a%&b == vector!(-1.0, -24.0, 33.0));
+    assert!(*&a.cross(&b) == vector!(-1.0, -24.0, 33.0));
 }
 
 #[test]

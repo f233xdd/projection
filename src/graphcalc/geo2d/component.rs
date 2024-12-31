@@ -1,12 +1,13 @@
 use std::fmt;
 
-// 2D part
 use super::{
     tool::*,
-    PlaneVector,
-    err,
-    Geo2DResult,
-    super::interface,
+    super::{
+        algebra::vector::PlaneVec,
+        geo_err,
+        GeoResult,
+        interface,
+    },
 };
 
 pub struct Point {
@@ -64,14 +65,14 @@ pub struct Line {
 
 impl Line {
     /// k1 * x + k2 * y = b
-    pub fn new(k1: f64, k2: f64, b: f64) -> Result<Self, err::InvalidFnArgError> {
+    pub fn new(k1: f64, k2: f64, b: f64) -> Result<Self, geo_err::InvalidFnArgError> {
         if k1 == 0.0 && k2 == 0.0 {
-            Err(err::InvalidFnArgError())
+            Err(geo_err::InvalidFnArgError())
         } else {
             Ok(Self {fn_args: (k1, k2, b)})
         }
     } 
-    pub fn from(p1: &Point, p2: &Point) -> Result<Self, err::SuperpositionError> {
+    pub fn from(p1: &Point, p2: &Point) -> Result<Self, geo_err::SuperpositionError> {
         match calc_line_fn(p1, p2) {
             Ok(func_args) => Ok(Self {fn_args: func_args}),
             Err(e) => Err(e)
@@ -80,8 +81,8 @@ impl Line {
     pub fn fn_args(&self) -> (f64, f64, f64) {
         self.fn_args
     }
-    pub fn get_direction_vec(&self) -> PlaneVector {
-        PlaneVector::new(self.fn_args.1, -self.fn_args.0)
+    pub fn get_direction_vec(&self) -> PlaneVec {
+        PlaneVec::new([self.fn_args.1, -self.fn_args.0])
     }
 }
 
@@ -137,8 +138,8 @@ impl interface::CalcDistance<Point, f64> for Line {
         calc_point_line_d(cpt, self)
     }
 }
-impl interface::CalcDistance<Line, Geo2DResult<f64>> for Line {
-    fn calc_d(&self, cpt: &Line) -> Geo2DResult<f64> {
+impl interface::CalcDistance<Line, GeoResult<f64>> for Line {
+    fn calc_d(&self, cpt: &Line) -> GeoResult<f64> {
         Ok(calc_line_d(self, cpt)?)
     }
 }
@@ -149,8 +150,8 @@ impl interface::CalcAngle<Line> for Line {
     }
 }
 
-impl interface::CalcIntersection<Line, Geo2DResult<Point>> for Line {
-    fn calc_intersection(&self, cpt: &Line) -> Geo2DResult<Point> {
+impl interface::CalcIntersection<Line, GeoResult<Point>> for Line {
+    fn calc_intersection(&self, cpt: &Line) -> GeoResult<Point> {
         Ok(calc_intersection(self, cpt)?)
     }
 }

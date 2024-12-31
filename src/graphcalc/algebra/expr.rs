@@ -1,69 +1,286 @@
 use std::collections::BTreeMap;
 use std::ops::{Add, Sub, Mul, Div};
+use std::ptr::eq;
 
 use super::tree::*;
 
+#[derive(Clone)]
 pub struct Monomial<'a> {
-    var: BTreeMap<&'static str, f64>,
-    coef: BTreeMap<&'static str, f64>,
+    vars: BTreeMap<&'a str, f64>,
+    params: BTreeMap<&'a str, f64>,
+    consts: BTreeMap<&'a str, f64>,
+    coef: f64,
     namespace: &'a NameSpace
 }
 
 impl<'a> Monomial<'a> {
-    pub fn new(namespace: &'a NameSpace) -> Self {
-        let mut coef = BTreeMap::new();
-        coef.insert("1", 1.0);
+    pub fn new(
+        vars: BTreeMap<&'a str, f64>,
+        params: BTreeMap<&'a str, f64>,
+        consts: BTreeMap<&'a str, f64>,
+        coef: f64,
+        namespace: &'a NameSpace
+    ) -> Self {
         Self {
+            vars,
+            params,
+            consts,
             coef,
-            var: BTreeMap::new(),
             namespace
         }
     }
-    pub fn mul_var(&mut self, v: &'static str) -> &mut Self {
-        if self.coef.contains_key(v) {
-            self
+
+    pub fn vars(&self) -> &BTreeMap<&'a str, f64> { &self.vars }
+    pub fn params(&self) -> &BTreeMap<&'a str, f64> { &self.params }
+    pub fn consts(&self) -> &BTreeMap<&'a str, f64> { &self.consts }
+    pub fn namespace(&self) -> &NameSpace { &self.namespace }
+    /// detest whether vars, params and consts are all equal
+    pub fn is_similar_term(&self, other: &Monomial) -> Result<bool, ()> {
+        if eq(self.namespace(), other.namespace()) {
+            Ok(
+                self.vars.keys().zip(other.vars().keys()).all(|(s1, s2)| s1 == s2) &&
+                self.params.keys().zip(other.params().keys()).all(|(s1, s2)| s1 == s2) &&
+                self.consts.iter().zip(other.consts()).all(|(s1, s2)| s1 == s2)
+            )
         } else {
-            self.var.entry(v).or_insert(1.0);
-            self
+            Err(())
         }
     }
-    pub fn mul_const(&mut self, c: &'static str) -> &mut Self {
-        if self.var.contains_key(c) {
-            self
-        } else {
-            self.coef.entry(c).or_insert(1.0);
-            self
+    // set value to some of the params of the expression
+    // 
+    // notice that the value table may contants other params that is not contained in current expression
+    // 
+    // create a new monomial
+    // pub fn set_const_v(&self, v_table: BTreeMap<&'a str, f64>) -> Self {
+    //     let mut new_params = BTreeMap::new();
+    //     let mut num = *self.params.get(&"1").unwrap();
+    //     for c in self.params.keys() {
+    //         match v_table.get(c) {
+    //             Some(const_val) => {
+    //                 num *= *const_val * *self.params.get(c).unwrap();
+    //             }
+    //             None => {
+    //                 new_params.insert(*c, *self.params.get(c).unwrap());
+    //             }
+    //         }
+    //     }
+    //     new_params.insert("1", num);
+    //     Self {
+    //         vars: self.vars.clone(),
+    //         params: new_params,
+    //         consts: self.consts.clone(),
+    //         namespace: self.namespace
+    //     }
+    // }
+}
+
+impl<'a> Add for Monomial<'a> {
+    type Output = Result<Monomial<'a>, Monomial<'a>>;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        match &self + &rhs {
+            Ok(val) => Ok(val),
+            Err(_) => Err(rhs)
         }
     }
-    /// set value to some of the params of the expression
-    /// 
-    /// notice that the value table may contants other params that is not contained in current expression
-    pub fn set_const_v(&self, v_table: BTreeMap<&'static str, f64>) -> Self {
-        let mut new_coef = BTreeMap::new();
-        let mut num = *self.coef.get(&"1").unwrap();
-        for c in self.coef.keys() {
-            match v_table.get(c) {
-                Some(const_val) => {
-                    num *= *const_val * *self.coef.get(c).unwrap();
-                }
-                None => {
-                    new_coef.insert(*c, *self.coef.get(c).unwrap());
-                }
+}
+
+impl<'a> Add for &Monomial<'a> {
+    type Output = Result<Monomial<'a>, ()>;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        if let Ok(res) = self.is_similar_term(&rhs) {
+            if res {
+                Ok(Monomial {
+                    vars: self.vars.clone(),
+                    params: self.params.clone(),
+                    consts: self.consts.clone(),
+                    coef: self.coef + rhs.coef,
+                    namespace: self.namespace
+                })
+            } else {
+                Err(())
+            }
+        } else {
+            Err(())
+        }
+    }
+}
+
+impl<'a> Sub for Monomial<'a> {
+    type Output = Result<Monomial<'a>, Monomial<'a>>;
+
+    fn sub(self, rhs: Self) -> Self::Output {
+        match &self - &rhs {
+            Ok(val) => Ok(val),
+            Err(_) => Err(rhs)
+        }
+    }
+}
+
+impl<'a> Sub for &Monomial<'a> {
+    type Output = Result<Monomial<'a>, ()>;
+
+    fn sub(self, rhs: Self) -> Self::Output {
+        if let Ok(res) = self.is_similar_term(&rhs) {
+            if res {
+                Ok(Monomial {
+                    vars: self.vars.clone(),
+                    params: self.params.clone(),
+                    consts: self.consts.clone(),
+                    coef: self.coef - rhs.coef,
+                    namespace: self.namespace
+                })
+            } else {
+                Err(())
+            }
+        } else {
+            Err(())
+        }
+    }
+}
+
+impl<'a> Mul for Monomial<'a> {
+    type Output = Monomial<'a>;
+
+    fn mul(self, rhs: Self) -> Self::Output {
+        &self * &rhs
+    }
+}
+
+impl<'a> Mul for &Monomial<'a> {
+    type Output = Monomial<'a>;
+
+    fn mul(self, rhs: Self) -> Self::Output {
+        let mut tmp_var = BTreeMap::new();
+        let mut tmp_param = BTreeMap::new();
+        let mut tmp_const = BTreeMap::new();
+
+        for s in self.vars.keys() {
+            if let Some(val) = rhs.vars.get(s) {
+                tmp_var.insert(*s, *self.vars.get(s).unwrap() + val);
+            } else {
+                tmp_var.insert(*s, *self.vars.get(s).unwrap());
             }
         }
-        new_coef.insert("1", num);
-        Self {
-            var: self.var.clone(),
-            coef: new_coef,
+        for s in self.params.keys() {
+            if let Some(val) = rhs.params.get(s) {
+                tmp_param.insert(*s, *self.params.get(s).unwrap() + val);
+            } else {
+                tmp_param.insert(*s, *self.params.get(s).unwrap());
+            }
+        }
+        for s in self.consts.keys() {
+            if let Some(val) = rhs.consts.get(s) {
+                tmp_const.insert(*s, *self.consts.get(s).unwrap() + val);
+            } else {
+                tmp_const.insert(*s, *self.consts.get(s).unwrap());
+            }
+        }
+        Monomial {
+            vars: tmp_var,
+            params: tmp_param,
+            consts: tmp_const,
+            coef: self.coef * rhs.coef,
             namespace: self.namespace
+        }
+    }
+}
+
+impl<'a> Div for Monomial<'a> {
+    type Output = Monomial<'a>;
+
+    fn div(self, rhs: Self) -> Self::Output {
+        &self / &rhs
+    }
+}
+
+impl<'a> Div for &Monomial<'a> {
+    type Output = Monomial<'a>;
+
+    fn div(self, rhs: Self) -> Self::Output {
+        let mut tmp_var = BTreeMap::new();
+        let mut tmp_param = BTreeMap::new();
+        let mut tmp_const = BTreeMap::new();
+
+        for s in self.vars.keys() {
+            if let Some(val) = rhs.vars.get(s) {
+                tmp_var.insert(*s, *self.vars.get(s).unwrap() - val);
+            } else {
+                tmp_var.insert(*s, *self.vars.get(s).unwrap());
+            }
+        }
+        for s in self.params.keys() {
+            if let Some(val) = rhs.params.get(s) {
+                tmp_param.insert(*s, *self.params.get(s).unwrap() - val);
+            } else {
+                tmp_param.insert(*s, *self.params.get(s).unwrap());
+            }
+        }
+        for s in self.consts.keys() {
+            if let Some(val) = rhs.consts.get(s) {
+                tmp_const.insert(*s, *self.consts.get(s).unwrap() - val);
+            } else {
+                tmp_const.insert(*s, *self.consts.get(s).unwrap());
+            }
+        }
+        Monomial {
+            vars: tmp_var,
+            params: tmp_param,
+            consts: tmp_const,
+            coef: self.coef / rhs.coef,
+            namespace: self.namespace
+        }
+    }
+}
+
+pub struct  MultiMonomial<'a> {
+    mono: Vec<Monomial<'a>>,
+}
+
+impl<'a> MultiMonomial<'a> {
+    pub fn new(mono: Vec<Monomial<'a>>) -> MultiMonomial<'a> {
+        Self { mono }
+    }
+
+    pub fn mono(&self) -> &Vec<Monomial<'a>> { &self.mono }
+    pub fn sort(&mut self) {
+        // TODO: sort itself
+    }
+}
+
+impl<'a> Add for &MultiMonomial<'a> {
+    type Output = MultiMonomial<'a>;
+
+
+    fn add(self, rhs: Self) -> Self::Output {
+        let mut tmp: Vec<_> = vec![];
+        let mut selected = vec![];
+        for mono in self.mono() {
+            for i in 0..rhs.mono().len() {
+                match mono + &rhs.mono()[i] {
+                    Ok(val) => {
+                        tmp.push(val);
+                        selected.push(i);
+                    },
+                    Err(_) => {}
+                }
+            }
+            tmp.push(mono.clone());
+        }
+        for i in 0..rhs.mono().len() {
+            if !selected.contains(&i) {
+                tmp.push(rhs.mono()[i].clone());
+            } else {}
+        }
+        MultiMonomial {
+            mono: tmp
         }
     }
 }
 
 pub struct Expr<'a> {
     expr_tree: ExprTree<'a>,
-    count_var: BTreeMap<&'a str, f64>,
-    count_const: BTreeMap<&'a str, f64>,
     namespace: &'a NameSpace
 }
 
@@ -71,8 +288,6 @@ impl<'a> Expr<'a> {
     pub fn new(namespace: &'a NameSpace) -> Self {
         Self {
             expr_tree: ExprTree::new(),
-            count_var: BTreeMap::new(),
-            count_const: BTreeMap::new(),
             namespace
         }
     }

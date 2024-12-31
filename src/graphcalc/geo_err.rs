@@ -61,6 +61,26 @@ impl fmt::Display for NotIncludedError {
 impl error::Error for NotIncludedError {}
 
 #[derive(Debug)]
+pub struct CoplanarError();
+
+impl fmt::Display for CoplanarError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "CoplanarError")
+    }
+}
+impl error::Error for CoplanarError {}
+
+#[derive(Debug)]
+pub struct NotCoplanarError();
+
+impl fmt::Display for NotCoplanarError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "NotCoplanarError")
+    }
+}
+impl error::Error for NotCoplanarError {}
+
+#[derive(Debug)]
 pub struct SuperpositionError();
 
 impl fmt::Display for SuperpositionError {
@@ -78,7 +98,9 @@ pub enum PositionError {
     NotVertincalError(NotVertincalError),
     IncludedError(IncludedError),
     NotIncludedError(NotIncludedError),
-    SuperpositionError(SuperpositionError)
+    CoplanarError(CoplanarError),
+    NotCoplanarError(NotCoplanarError),
+    SuperpositionError(SuperpositionError),
 }
 
 impl fmt::Display for PositionError {
@@ -90,7 +112,9 @@ impl fmt::Display for PositionError {
             Self::NotVertincalError(e) => e.fmt(f),
             Self::IncludedError(e) => e.fmt(f),
             Self::NotIncludedError(e) => e.fmt(f),
-            Self::SuperpositionError(e) => e.fmt(f)
+            Self::CoplanarError(e) => e.fmt(f),
+            Self::NotCoplanarError(e) => e.fmt(f),
+            Self::SuperpositionError(e) => e.fmt(f),
         }
     }
 }
@@ -104,6 +128,8 @@ impl error::Error for PositionError {
             Self::NotVertincalError(e) => Some(e),
             Self::IncludedError(e) => Some(e),
             Self::NotIncludedError(e) => Some(e),
+            Self::CoplanarError(e) => Some(e),
+            Self::NotCoplanarError(e) => Some(e),
             Self::SuperpositionError(e) => Some(e),
         }
     }
@@ -139,6 +165,16 @@ impl From<NotIncludedError> for PositionError {
         Self::NotIncludedError(value)
     }
 }
+impl From<CoplanarError> for PositionError {
+    fn from(value: CoplanarError) -> Self {
+        Self::CoplanarError(value)
+    }
+}
+impl From<NotCoplanarError> for PositionError {
+    fn from(value: NotCoplanarError) -> Self {
+        Self::NotCoplanarError(value)
+    }
+}
 impl From<SuperpositionError> for PositionError {
     fn from(value: SuperpositionError) -> Self {
         Self::SuperpositionError(value)
@@ -168,13 +204,13 @@ impl fmt::Display for InvalidFnArgError {
 impl error::Error for InvalidFnArgError {}
 
 #[derive(Debug)]
-pub enum Geo2DError {
+pub enum GeoError {
     PositionError(PositionError),
     MismatchedComponentError(MismatchedComponentError),
     InvalidFnArgError(InvalidFnArgError),
 }
 
-impl fmt::Display for Geo2DError {
+impl fmt::Display for GeoError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::PositionError(e) => e.fmt(f),
@@ -184,7 +220,7 @@ impl fmt::Display for Geo2DError {
     }
 }
 
-impl error::Error for Geo2DError {
+impl error::Error for GeoError {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match self {
             Self::PositionError(e) => Some(e),
@@ -194,17 +230,17 @@ impl error::Error for Geo2DError {
     }
 }
 
-impl From<MismatchedComponentError> for Geo2DError {
+impl From<MismatchedComponentError> for GeoError {
     fn from(value: MismatchedComponentError) -> Self {
         Self::MismatchedComponentError(value)
     }
 }
-impl From<InvalidFnArgError> for Geo2DError {
+impl From<InvalidFnArgError> for GeoError {
     fn from(value: InvalidFnArgError) -> Self {
         Self::InvalidFnArgError(value)
-    }   
+    }
 }
-impl<T: Into<PositionError>> From<T> for Geo2DError {
+impl<T: Into<PositionError>> From<T> for GeoError {
     fn from(value: T) -> Self {
         Self::PositionError(value.into())
     }

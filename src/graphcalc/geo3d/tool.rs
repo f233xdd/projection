@@ -3,9 +3,11 @@ use super::{
     component::{
         Point, Line, Plane,
     },
-    SpaceVector,
-    err,
-    super::algebra::calc::approximate,
+    super::{
+        algebra::vector::SpaceVec,
+        algebra::calc::approximate,
+        geo_err,
+    },
 };
 
 /// function sample:
@@ -30,7 +32,7 @@ pub fn calc_line_fn(p1: &Point, p2: &Point) -> Result<((f64, f64, f64, f64), (f6
 
 
 /// k1 * x + k2 * y + k3 * z = b
-pub fn calc_plane_fn(p1: &Point, p2: &Point, p3: &Point) -> Result<(f64, f64, f64, f64), err::InvalidFnArgError> {
+pub fn calc_plane_fn(p1: &Point, p2: &Point, p3: &Point) -> Result<(f64, f64, f64, f64), geo_err::InvalidFnArgError> {
     let (x_p1, y_p1, z_p1) = p1.pos();
     let (x_p2, y_p2, z_p2) = p2.pos();
     let (x_p3, y_p3, z_p3) = p3.pos();
@@ -41,15 +43,15 @@ pub fn calc_plane_fn(p1: &Point, p2: &Point, p3: &Point) -> Result<(f64, f64, f6
     if k1 != 0.0 || k2 != 0.0 || k3 != 0.0 {
         return Ok((k1, k2, k3, b));
     } else {
-        return Err(err::InvalidFnArgError());
+        return Err(geo_err::InvalidFnArgError());
     }
 }
 
-pub fn vec_to_line(vec: &SpaceVector, p: &Point) -> Result<Line, err::InvalidFnArgError> {
+pub fn vec_to_line(vec: &SpaceVec, p: &Point) -> Result<Line, geo_err::InvalidFnArgError> {
     vec.to_line(p)
 }
 
-pub fn vec_to_plane(vec: &SpaceVector, p: &Point) -> Result<Plane, err::InvalidFnArgError> {
+pub fn vec_to_plane(vec: &SpaceVec, p: &Point) -> Result<Plane, geo_err::InvalidFnArgError> {
     vec.to_plane(p)
 }
 
@@ -230,7 +232,7 @@ pub fn calc_point_plane_d(p: &Point, pn: &Plane) -> f64 {
     (k1*x_p+k2*y_p+k3*z_p-b).abs()/(k1.powi(2)+k2.powi(2)+k3.powi(2)).sqrt()
 }
 
-pub fn calc_line_plane_d(ln: &Line, pn: &Plane) -> Result<f64, err::NotParallelError> {
+pub fn calc_line_plane_d(ln: &Line, pn: &Plane) -> Result<f64, geo_err::NotParallelError> {
     let ((k11, k12, k13, b1), (k21, k22, k23, b2)) = ln.fn_args();
     let (k1 ,k2, k3, b) = pn.fn_args();
     let mut a: f64;
@@ -247,10 +249,10 @@ pub fn calc_line_plane_d(ln: &Line, pn: &Plane) -> Result<f64, err::NotParallelE
                 Ok((k1*(k22*b1-k12*b2)/a+k2*(k11*b2-k21*b1)/a-b).abs()/(k1.powi(2)+k2.powi(2)+k3.powi(2)).sqrt())
             }
         }
-    } else {Err(err::NotParallelError())}
+    } else {Err(geo_err::NotParallelError())}
 }
 
-pub fn calc_plane_d(pn1: &Plane, pn2: &Plane) -> Result<f64, err::NotParallelError> {
+pub fn calc_plane_d(pn1: &Plane, pn2: &Plane) -> Result<f64, geo_err::NotParallelError> {
     let (k11 ,k12, k13, b1) = pn1.fn_args();
     let (k21 ,k22, k23, b2) = pn2.fn_args();
     if plane_is_parallel(pn1, pn2) {
@@ -258,28 +260,28 @@ pub fn calc_plane_d(pn1: &Plane, pn2: &Plane) -> Result<f64, err::NotParallelErr
                     else if k12 != 0.0 {k22/k12}
                     else {k23/k13};
         Ok((k*b1-b2).abs()/(k21.powi(2)+k22.powi(2)+k23.powi(2)).sqrt())
-    } else {Err(err::NotParallelError())}
+    } else {Err(geo_err::NotParallelError())}
 }
 
 pub fn calc_line_angle(ln1: &Line, ln2: &Line) -> f64 {
     let vec1 = ln1.get_direction_vec();
     let vec2 = ln2.get_direction_vec(); 
-    ((&vec1 * &vec2).abs() / (vec1.len() * vec2.len())).acos()
+    ((&vec1 * &vec2).abs() / (vec1.norm() * vec2.norm())).acos()
 }
 
 pub fn calc_line_plane_angle(ln: &Line, pn: &Plane) -> f64 {
     let vec1 = ln.get_direction_vec();
     let vec2 = pn.get_normal_vec();
-    ((&vec1 * &vec2).abs() / (vec1.len() * vec2.len())).asin()
+    ((&vec1 * &vec2).abs() / (vec1.norm() * vec2.norm())).asin()
 }
 
 pub fn calc_plane_angle(pn1: &Plane, pn2: &Plane) -> f64 {
     let vec1 = pn1.get_normal_vec();
     let vec2 = pn2.get_normal_vec();
-    ((&vec1 * &vec2).abs() / (vec1.len() * vec2.len())).acos()
+    ((&vec1 * &vec2).abs() / (vec1.norm() * vec2.norm())).acos()
 }
 
-pub fn calc_line_intersection(ln1: &Line, ln2: &Line) -> Result<Point, err::ParallelError> {
+pub fn calc_line_intersection(ln1: &Line, ln2: &Line) -> Result<Point, geo_err::ParallelError> {
     let ((k111, k112, k113, b11), (k121, k122, k123, b12)) = ln1.fn_args();
     let ((k211, k212, k213, b21), (k221, k222, k223, b22)) = ln2.fn_args();
     if line_is_coplanar(ln1, ln2) && !line_is_parallel(ln1, ln2) {
@@ -291,10 +293,10 @@ pub fn calc_line_intersection(ln1: &Line, ln2: &Line) -> Result<Point, err::Para
             (k223*b21-k213*b22)*(k112*k121-k111*k122))/a,
         );
         Ok(Point::new(x, y, z))
-    } else {Err(err::ParallelError())}
+    } else {Err(geo_err::ParallelError())}
 }
 
-pub fn calc_line_plane_intersection(ln: &Line, pn: &Plane) -> Result<Point, err::ParallelError> {
+pub fn calc_line_plane_intersection(ln: &Line, pn: &Plane) -> Result<Point, geo_err::ParallelError> {
     let ((k11, k12, k13, b1), (k21, k22, k23, b2)) = ln.fn_args();
     let (k1 ,k2, k3, b) = pn.fn_args();
     let k = ln.get_direction_vec() * pn.get_normal_vec();
@@ -307,11 +309,11 @@ pub fn calc_line_plane_intersection(ln: &Line, pn: &Plane) -> Result<Point, err:
             )
         )
     } else {
-        Err(err::ParallelError())
+        Err(geo_err::ParallelError())
     }
 }
 
-pub fn calc_plane_intersection(pn1: &Plane, pn2: &Plane) -> Result<Line, err::InvalidFnArgError> {
+pub fn calc_plane_intersection(pn1: &Plane, pn2: &Plane) -> Result<Line, geo_err::InvalidFnArgError> {
     let (k11 ,k12, k13, b1) = pn1.fn_args();
     let (k21 ,k22, k23, b2) = pn2.fn_args();
     Line::new(k11, k12, k13, b1, k21, k22, k23, b2)
