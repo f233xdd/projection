@@ -1,6 +1,6 @@
-pub mod project;
 pub mod interface;
+pub mod project;
 
 use super::graphcalc;
-use super::{p, ln, pn};
 use super::graphcalc::algebra::calc::approximate;
+use super::{ln, p, pn};

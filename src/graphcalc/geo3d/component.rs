@@ -1,16 +1,11 @@
 use std::fmt;
 
 use super::{
-    tool::*,
     super::{
-        algebra::{
-            vector::SpaceVec,
-            calc::approximate,
-        },
-        geo_err,
-        GeoResult,
-        interface,
+        algebra::{calc::approximate, vector::SpaceVec},
+        geo_err, interface, GeoResult,
     },
+    tool::*,
 };
 
 // 3D part
@@ -22,10 +17,10 @@ pub struct Point {
 
 impl Point {
     pub fn new(x: f64, y: f64, z: f64) -> Self {
-        Self {x, y, z}
+        Self { x, y, z }
     }
     pub fn pos(&self) -> (f64, f64, f64) {
-        (self.x, self.y ,self.z)
+        (self.x, self.y, self.z)
     }
 }
 
@@ -74,14 +69,24 @@ impl interface::CalcDistance<Plane, f64> for Point {
 ///  k11 * x + k12 * y + k13 * z = b1,
 ///  k21 * x + k22 * y + k23 * z = b2
 pub struct Line {
-    fn_args: ((f64, f64, f64, f64), (f64, f64, f64, f64))
+    fn_args: ((f64, f64, f64, f64), (f64, f64, f64, f64)),
 }
 
 impl Line {
-    pub fn new(k11: f64, k12: f64, k13: f64, b1: f64,
-                k21: f64, k22: f64, k23: f64, b2: f64) -> Result<Self, geo_err::InvalidFnArgError> {
-        if !approximate(k11*k22, k12*k21) || !approximate(k11*k23, k13*k21) {
-            Ok(Self {fn_args: ((k11, k12, k13, b1), (k21, k22, k23, b2))})
+    pub fn new(
+        k11: f64,
+        k12: f64,
+        k13: f64,
+        b1: f64,
+        k21: f64,
+        k22: f64,
+        k23: f64,
+        b2: f64,
+    ) -> Result<Self, geo_err::InvalidFnArgError> {
+        if !approximate(k11 * k22, k12 * k21) || !approximate(k11 * k23, k13 * k21) {
+            Ok(Self {
+                fn_args: ((k11, k12, k13, b1), (k21, k22, k23, b2)),
+            })
         } else {
             Err(geo_err::InvalidFnArgError())
         }
@@ -89,8 +94,8 @@ impl Line {
 
     pub fn from_p(p1: &Point, p2: &Point) -> Result<Self, geo_err::InvalidFnArgError> {
         match calc_line_fn(p1, p2) {
-            Ok(func_args) => Ok(Self {fn_args: func_args}),
-            Err(()) => Err(geo_err::InvalidFnArgError())
+            Ok(func_args) => Ok(Self { fn_args: func_args }),
+            Err(()) => Err(geo_err::InvalidFnArgError()),
         }
     }
 
@@ -100,7 +105,11 @@ impl Line {
 
     pub fn get_direction_vec(&self) -> SpaceVec {
         let ((k11, k12, k13, _), (k21, k22, k23, _)) = self.fn_args();
-        SpaceVec::new([k13*k22-k12*k23, k11*k23-k13*k21, k12*k21-k11*k22])
+        SpaceVec::new([
+            k13 * k22 - k12 * k23,
+            k11 * k23 - k13 * k21,
+            k12 * k21 - k11 * k22,
+        ])
     }
 }
 
@@ -145,7 +154,8 @@ impl fmt::Display for Line {
             } else if k2 < 0.0 {
                 write!(f, "{k2}y").unwrap();
                 no_front_var = false;
-            } else {}
+            } else {
+            }
 
             if approximate(k3, 1.0) {
                 if no_front_var {
@@ -163,13 +173,15 @@ impl fmt::Display for Line {
                 }
             } else if k3 < 0.0 {
                 write!(f, "{k3}z").unwrap();
-            } else {}
+            } else {
+            }
             write!(f, "={b}").unwrap();
 
             if add_comma {
                 write!(f, ", ").unwrap();
                 add_comma = false;
-            } else {}
+            } else {
+            }
         }
         write!(f, "}}>")
     }
@@ -261,7 +273,7 @@ impl interface::CalcIntersection<Plane, GeoResult<Point>> for Line {
 
 /// k1 * x + k2 * y + k3 * z = b
 pub struct Plane {
-    func_args: (f64, f64, f64, f64)
+    func_args: (f64, f64, f64, f64),
 }
 
 impl Plane {
@@ -270,14 +282,16 @@ impl Plane {
         if k1 == 0.0 && k2 == 0.0 && k3 == 0.0 {
             Err(geo_err::InvalidFnArgError())
         } else {
-            Ok(Self {func_args: (k1, k2, k3, b)})
+            Ok(Self {
+                func_args: (k1, k2, k3, b),
+            })
         }
     }
 
-    pub fn from_p(p1: &Point, p2: &Point, p3: &Point) -> Result<Self, geo_err::InvalidFnArgError>  {
+    pub fn from_p(p1: &Point, p2: &Point, p3: &Point) -> Result<Self, geo_err::InvalidFnArgError> {
         match calc_plane_fn(p1, p2, p3) {
-            Ok(fn_args) => Ok(Self {func_args: fn_args}),
-            Err(e) => Err(e)
+            Ok(fn_args) => Ok(Self { func_args: fn_args }),
+            Err(e) => Err(e),
         }
     }
 
@@ -294,8 +308,11 @@ impl Plane {
         let (x1, y1, z1) = p1.pos();
         let (x2, y2, z2) = p2.pos();
         let (a, b, c, d) = self.func_args;
-        if (x1*a+y1*b+z1*c-d) * (x2*a+y2*b+z2*c-d) >= 0.0 { true } 
-        else  { false }
+        if (x1 * a + y1 * b + z1 * c - d) * (x2 * a + y2 * b + z2 * c - d) >= 0.0 {
+            true
+        } else {
+            false
+        }
     }
 }
 
@@ -324,7 +341,8 @@ impl fmt::Display for Plane {
             } else {
                 write!(f, "{k2}y").unwrap();
             }
-        } else {}
+        } else {
+        }
 
         if k3 > 0.0 {
             if k3 == 1.0 {

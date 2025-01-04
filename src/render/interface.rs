@@ -1,3 +1,1 @@
-trait Render {
-    
-}
+trait Render {}

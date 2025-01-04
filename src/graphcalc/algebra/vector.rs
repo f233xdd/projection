@@ -1,5 +1,5 @@
-use super::calc::approximate;
 use super::super::{geo2d, geo3d, geo_err};
+use super::calc::approximate;
 
 pub struct Vector<const L: usize> {
     data: [f64; L],
@@ -15,7 +15,13 @@ impl<const L: usize> Vector<L> {
     pub fn normalize(&self) -> Self {
         let norm = self.norm();
         Self {
-            data: self.data.iter().map(|x| x / norm).collect::<Vec<f64>>().try_into().unwrap(),
+            data: self
+                .data
+                .iter()
+                .map(|x| x / norm)
+                .collect::<Vec<f64>>()
+                .try_into()
+                .unwrap(),
         }
     }
 }
@@ -36,7 +42,7 @@ impl PlaneVec {
     }
     pub fn cross(&self, rhs: &Self) -> SpaceVec {
         SpaceVec {
-            data: [0.0, 0.0, self.x()*rhs.y()-self.y()*rhs.x()]
+            data: [0.0, 0.0, self.x() * rhs.y() - self.y() * rhs.x()],
         }
     }
 }
@@ -54,27 +60,48 @@ impl SpaceVec {
     pub fn to_line(&self, p: &geo3d::Point) -> Result<geo3d::Line, geo_err::InvalidFnArgError> {
         let (x_p, y_p, z_p) = p.pos();
         if !approximate(self.x(), 0.0) {
-            geo3d::Line::new(self.y(), -self.x(), 0.0, self.y()*x_p - self.x()*y_p,
-                    self.z(), 0.0, -self.x(), self.z()*x_p - self.x()*z_p)
+            geo3d::Line::new(
+                self.y(),
+                -self.x(),
+                0.0,
+                self.y() * x_p - self.x() * y_p,
+                self.z(),
+                0.0,
+                -self.x(),
+                self.z() * x_p - self.x() * z_p,
+            )
         } else {
-            geo3d::Line::new(0.0, self.z(), -self.y(), self.z()*y_p-self.y()*z_p,
-                    1.0, 0.0, 0.0, x_p)
+            geo3d::Line::new(
+                0.0,
+                self.z(),
+                -self.y(),
+                self.z() * y_p - self.y() * z_p,
+                1.0,
+                0.0,
+                0.0,
+                x_p,
+            )
         }
     }
     pub fn to_plane(&self, p: &geo3d::Point) -> Result<geo3d::Plane, geo_err::InvalidFnArgError> {
         let (x_p, y_p, z_p) = p.pos();
-        match geo3d::Plane::new(self.x(), self.y(), self.z(), self.x()*x_p+self.y()*y_p+self.z()*z_p) {
+        match geo3d::Plane::new(
+            self.x(),
+            self.y(),
+            self.z(),
+            self.x() * x_p + self.y() * y_p + self.z() * z_p,
+        ) {
             Ok(pn) => Ok(pn),
-            Err(e) => Err(e)
+            Err(e) => Err(e),
         }
     }
     pub fn cross(&self, rhs: &Self) -> Self {
         SpaceVec {
             data: [
-                self.y()*rhs.z()-self.z()*rhs.y(),
-                -self.x()*rhs.z()+self.z()*rhs.x(),
-                self.x()*rhs.y()-self.y()*rhs.x()
-            ]
+                self.y() * rhs.z() - self.z() * rhs.y(),
+                -self.x() * rhs.z() + self.z() * rhs.x(),
+                self.x() * rhs.y() - self.y() * rhs.x(),
+            ],
         }
     }
 }
@@ -84,7 +111,14 @@ impl<const L: usize> std::ops::Add for Vector<L> {
 
     fn add(self, other: Self) -> Self {
         Self {
-            data: self.data.iter().zip(other.data.iter()).map(|(a, b)| a + b).collect::<Vec<f64>>().try_into().unwrap(),
+            data: self
+                .data
+                .iter()
+                .zip(other.data.iter())
+                .map(|(a, b)| a + b)
+                .collect::<Vec<f64>>()
+                .try_into()
+                .unwrap(),
         }
     }
 }
@@ -94,7 +128,14 @@ impl<const L: usize> std::ops::Add for &Vector<L> {
 
     fn add(self, other: Self) -> Vector<L> {
         Vector {
-            data: self.data.iter().zip(other.data.iter()).map(|(a, b)| a + b).collect::<Vec<f64>>().try_into().unwrap(),
+            data: self
+                .data
+                .iter()
+                .zip(other.data.iter())
+                .map(|(a, b)| a + b)
+                .collect::<Vec<f64>>()
+                .try_into()
+                .unwrap(),
         }
     }
 }
@@ -104,7 +145,14 @@ impl<const L: usize> std::ops::Sub for Vector<L> {
 
     fn sub(self, other: Self) -> Self {
         Self {
-            data: self.data.iter().zip(other.data.iter()).map(|(a, b)| a - b).collect::<Vec<f64>>().try_into().unwrap(),
+            data: self
+                .data
+                .iter()
+                .zip(other.data.iter())
+                .map(|(a, b)| a - b)
+                .collect::<Vec<f64>>()
+                .try_into()
+                .unwrap(),
         }
     }
 }
@@ -114,7 +162,14 @@ impl<const L: usize> std::ops::Sub for &Vector<L> {
 
     fn sub(self, other: Self) -> Vector<L> {
         Vector {
-            data: self.data.iter().zip(other.data.iter()).map(|(a, b)| a - b).collect::<Vec<f64>>().try_into().unwrap(),
+            data: self
+                .data
+                .iter()
+                .zip(other.data.iter())
+                .map(|(a, b)| a - b)
+                .collect::<Vec<f64>>()
+                .try_into()
+                .unwrap(),
         }
     }
 }
@@ -124,7 +179,13 @@ impl<const L: usize> std::ops::Mul<f64> for Vector<L> {
 
     fn mul(self, scalar: f64) -> Self {
         Self {
-            data: self.data.iter().map(|x| x * scalar).collect::<Vec<f64>>().try_into().unwrap(),
+            data: self
+                .data
+                .iter()
+                .map(|x| x * scalar)
+                .collect::<Vec<f64>>()
+                .try_into()
+                .unwrap(),
         }
     }
 }
@@ -134,7 +195,13 @@ impl<const L: usize> std::ops::Mul<f64> for &Vector<L> {
 
     fn mul(self, scalar: f64) -> Vector<L> {
         Vector {
-            data: self.data.iter().map(|x| x * scalar).collect::<Vec<f64>>().try_into().unwrap(),
+            data: self
+                .data
+                .iter()
+                .map(|x| x * scalar)
+                .collect::<Vec<f64>>()
+                .try_into()
+                .unwrap(),
         }
     }
 }
@@ -143,7 +210,11 @@ impl<const L: usize> std::ops::Mul<Vector<L>> for Vector<L> {
     type Output = f64;
 
     fn mul(self, other: Self) -> f64 {
-        self.data.iter().zip(other.data.iter()).map(|(a, b)| a * b).sum()
+        self.data
+            .iter()
+            .zip(other.data.iter())
+            .map(|(a, b)| a * b)
+            .sum()
     }
 }
 
@@ -151,17 +222,26 @@ impl<const L: usize> std::ops::Mul<&Vector<L>> for &Vector<L> {
     type Output = f64;
 
     fn mul(self, other: &Vector<L>) -> f64 {
-        self.data.iter().zip(other.data.iter()).map(|(a, b)| a * b).sum()
+        self.data
+            .iter()
+            .zip(other.data.iter())
+            .map(|(a, b)| a * b)
+            .sum()
     }
 }
-
 
 impl<const L: usize> std::ops::Div<f64> for Vector<L> {
     type Output = Self;
 
     fn div(self, scalar: f64) -> Self {
         Self {
-            data: self.data.iter().map(|x| x / scalar).collect::<Vec<f64>>().try_into().unwrap(),
+            data: self
+                .data
+                .iter()
+                .map(|x| x / scalar)
+                .collect::<Vec<f64>>()
+                .try_into()
+                .unwrap(),
         }
     }
 }
@@ -171,14 +251,23 @@ impl<const L: usize> std::ops::Div<f64> for &Vector<L> {
 
     fn div(self, rhs: f64) -> Self::Output {
         Vector {
-            data: self.data.iter().map(|x| x / rhs).collect::<Vec<f64>>().try_into().unwrap(),
+            data: self
+                .data
+                .iter()
+                .map(|x| x / rhs)
+                .collect::<Vec<f64>>()
+                .try_into()
+                .unwrap(),
         }
     }
 }
 
 impl<const L: usize> PartialEq for Vector<L> {
     fn eq(&self, other: &Self) -> bool {
-        self.data.iter().zip(other.data.iter()).all(|(a, b)| approximate(*a, *b))
+        self.data
+            .iter()
+            .zip(other.data.iter())
+            .all(|(a, b)| approximate(*a, *b))
     }
 }
 

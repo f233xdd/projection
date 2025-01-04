@@ -12,7 +12,7 @@ pub trait Vertical<T> {
 }
 pub trait Coplanar<T> {
     fn is_coplanar(&self, cpt: &T) -> bool;
-}   
+}
 pub trait CalcDistance<T, R> {
     fn calc_d(&self, cpt: &T) -> R;
 }

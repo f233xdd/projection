@@ -2,7 +2,7 @@
 use std::f64::consts::PI;
 
 use projection::graphcalc::geo2d::tool::*;
-use projection::{p, ln};
+use projection::{ln, p};
 
 // static TEST_LIST: [fn()->();9] = [
 //     test_line_func,
@@ -18,7 +18,7 @@ use projection::{p, ln};
 #[test]
 fn test_line_func() {
     let v = calc_line_fn(&p!(9.0, 52.0), &p!(5.0, 32.0)).unwrap();
-    assert_eq!(v, (20.0,-4.0,-28.0));
+    assert_eq!(v, (20.0, -4.0, -28.0));
 }
 
 #[test]
@@ -52,7 +52,7 @@ fn test_is_vertical() {
 fn test_is_superposition() {
     let ln1 = ln!((0.0, 0.0), (1.0, 1.0)).unwrap();
     let ln2 = ln!((5.0, 5.0), (4.0, 4.0)).unwrap();
-    let ln3 = ln!((4.0, 8.0), (5.0,9.0)).unwrap();
+    let ln3 = ln!((4.0, 8.0), (5.0, 9.0)).unwrap();
     assert_eq!(line_is_superposition(&ln1, &ln2), true);
     assert_eq!(line_is_superposition(&ln1, &ln3), false);
 }
@@ -75,7 +75,7 @@ fn test_calc_line_d() {
 fn test_calc_angle() {
     let ln1 = ln!((8.0, 5.0), (9.0, 6.0)).unwrap();
     let ln2 = ln!((1.0, 1.0), (5.0, 1.0)).unwrap();
-    assert!((calc_angle(&ln1, &ln2) - PI/4.0).abs() < 0.0000001);
+    assert!((calc_angle(&ln1, &ln2) - PI / 4.0).abs() < 0.0000001);
 }
 
 #[test]
@@ -83,5 +83,8 @@ fn test_calc_intersection() {
     let ln1 = ln!((4.0, 8.0), (5.0, 10.0)).unwrap();
     let ln2 = ln!((0.0, 5.0), (5.0, 0.0)).unwrap();
     let cross = calc_intersection(&ln1, &ln2).unwrap();
-    assert_eq!(point_is_superposition(&cross, &p!(5.0/3.0, 10.0/3.0)), true);
+    assert_eq!(
+        point_is_superposition(&cross, &p!(5.0 / 3.0, 10.0 / 3.0)),
+        true
+    );
 }

@@ -2,7 +2,7 @@
 use std::f64::consts::PI;
 
 use projection::graphcalc::geo3d::tool::*;
-use projection::{p, ln, pn, vector, graphcalc::interface::Superposition};
+use projection::{graphcalc::interface::Superposition, ln, p, pn, vector};
 
 const ACCURACY: f64 = 1e-8;
 
@@ -22,26 +22,35 @@ const ACCURACY: f64 = 1e-8;
 fn test_vec_calc() {
     let a = vector!(3.0, 4.0, 3.0);
     let b = vector!(-6.0, 3.0, 2.0);
-    assert!(&a+&b == vector!(-3.0, 7.0, 5.0));
-    assert!(&a-&b == vector!(9.0, 1.0, 1.0));
-    assert!(&a*&b == 0.0);
+    assert!(&a + &b == vector!(-3.0, 7.0, 5.0));
+    assert!(&a - &b == vector!(9.0, 1.0, 1.0));
+    assert!(&a * &b == 0.0);
     assert!(*&a.cross(&b) == vector!(-1.0, -24.0, 33.0));
 }
 
 #[test]
 fn test_func_calc() {
     let ln = ln!((1.0, 0.0, 1.0), (0.0, 1.0, 0.0)).unwrap();
-    let ln1 = ln!((k11: -1.0, k12: -1.0, k13: 0.0, b1: -1.0), (k21: -1.0, k22: 0.0, k23: 1.0, b2: 0.0)).unwrap();
+    let ln1 =
+        ln!((k11: -1.0, k12: -1.0, k13: 0.0, b1: -1.0), (k21: -1.0, k22: 0.0, k23: 1.0, b2: 0.0))
+            .unwrap();
     assert!(ln.is_superposition(&ln1));
-    assert!(pn!((0.0, 0.0, 0.0), (1.0, 0.0, 1.0), (0.0, 1.0, 1.0)).unwrap().is_superposition(&pn!(k1:1.0, k2:1.0, k3:-1.0, b:0.0).unwrap()));
+    assert!(pn!((0.0, 0.0, 0.0), (1.0, 0.0, 1.0), (0.0, 1.0, 1.0))
+        .unwrap()
+        .is_superposition(&pn!(k1:1.0, k2:1.0, k3:-1.0, b:0.0).unwrap()));
 }
 
 #[test]
 fn test_is_in() {
     let p = p!(0.5, 0.5, 0.5);
-    let ln = ln!((0.0, 0.0, 1.0/3.0), (1.0, 1.0, 2.0/3.0)).unwrap();
-    let pn = pn!((0.0, 0.0, 1.0/3.0), (1.0, 1.0, 2.0/3.0), (1.0, 0.0, 1.0/2.0)).unwrap();
-    assert!(point_is_in_line(&p!(1.0, 1.0, 2.0/3.0), &ln));
+    let ln = ln!((0.0, 0.0, 1.0 / 3.0), (1.0, 1.0, 2.0 / 3.0)).unwrap();
+    let pn = pn!(
+        (0.0, 0.0, 1.0 / 3.0),
+        (1.0, 1.0, 2.0 / 3.0),
+        (1.0, 0.0, 1.0 / 2.0)
+    )
+    .unwrap();
+    assert!(point_is_in_line(&p!(1.0, 1.0, 2.0 / 3.0), &ln));
     assert!(point_is_in_plane(&p, &pn));
     assert!(line_is_in_plane(&ln, &pn));
 }
@@ -93,23 +102,23 @@ fn test_line_pos() {
 fn test_calc_d() {
     let p1 = p!(0.0, 1.0, 1.0);
     let ln1 = ln!((0.0, 0.0, 1.0), (1.0, 2.0, 0.0)).unwrap();
-    assert!((calc_point_line_d(&p1, &ln1) - 3.0_f64.sqrt()/3.0).abs() < ACCURACY);
+    assert!((calc_point_line_d(&p1, &ln1) - 3.0_f64.sqrt() / 3.0).abs() < ACCURACY);
 
-    let ln2 = ln!((1.0 ,0.0 ,1.0), (0.0, 2.0, 1.0)).unwrap();
+    let ln2 = ln!((1.0, 0.0, 1.0), (0.0, 2.0, 1.0)).unwrap();
     let ln3 = ln!((0.0, 0.0, 0.0), (1.0, 2.0, 0.0)).unwrap();
     assert!((calc_line_d(&ln2, &ln3) - 1.0).abs() < ACCURACY);
 
     let p2 = p!(1.0, 1.0, 1.0);
-    let pn1 = pn!((1.0 ,0.0, 0.0), (0.0, 1.0, 0.0), (0.0, 0.0, 1.0)).unwrap();
-    assert!((calc_point_plane_d(&p2, &pn1) - 2.0*3.0_f64.sqrt()/3.0).abs() < ACCURACY);
+    let pn1 = pn!((1.0, 0.0, 0.0), (0.0, 1.0, 0.0), (0.0, 0.0, 1.0)).unwrap();
+    assert!((calc_point_plane_d(&p2, &pn1) - 2.0 * 3.0_f64.sqrt() / 3.0).abs() < ACCURACY);
 
-    let ln4 = ln!((1.0 ,1.0, 0.0), (0.0, 2.0, 1.0)).unwrap();
+    let ln4 = ln!((1.0, 1.0, 0.0), (0.0, 2.0, 1.0)).unwrap();
     let pn2 = pn!((1.0, 0.0, 0.0), (0.0, 1.0, 1.0), (0.0, 2.0, 0.0)).unwrap();
     assert!((calc_line_plane_d(&ln4, &pn2).unwrap() - 0.4082482904639).abs() < ACCURACY);
 
     let pn3 = pn!((1.0, 1.0, 0.0), (1.0, 0.0, 1.0), (0.0, 1.0, 1.0)).unwrap();
     let pn4 = pn!((1.0, 1.0, 1.0), (1.0, 2.0, 0.0), (0.0, 2.0, 1.0)).unwrap();
-    assert!((calc_plane_d(&pn3, &pn4).unwrap() - 3.0_f64.sqrt()/3.0).abs() < ACCURACY);
+    assert!((calc_plane_d(&pn3, &pn4).unwrap() - 3.0_f64.sqrt() / 3.0).abs() < ACCURACY);
 }
 
 #[test]
@@ -124,22 +133,29 @@ fn test_calc_angle() {
 
     let pn1 = pn!((1.0, 0.0, 0.0), (0.0, 2.0, 0.0), (0.0, 1.0, 1.0)).unwrap();
     let pn2 = pn!((1.0, 0.0, 0.0), (0.0, 2.0, 0.0), (0.0, 0.0, 0.0)).unwrap();
-    assert!((calc_plane_angle(&pn1, &pn2) - (PI-1.9913306621)).abs() < ACCURACY);
+    assert!((calc_plane_angle(&pn1, &pn2) - (PI - 1.9913306621)).abs() < ACCURACY);
 }
 
 #[test]
 fn test_calc_intersection() {
     let ln1 = ln!((1.0, 0.0, 0.0), (0.0, 2.0, 1.0)).unwrap();
     let ln2 = ln!((0.0, 0.0, 1.0), (1.0, 2.0, 0.0)).unwrap();
-    assert!(calc_line_intersection(&ln1, &ln2).unwrap().is_superposition(&p!(1.0/2.0, 1.0, 1.0/2.0)));
+    assert!(calc_line_intersection(&ln1, &ln2)
+        .unwrap()
+        .is_superposition(&p!(1.0 / 2.0, 1.0, 1.0 / 2.0)));
 
     let ln = ln!((0.0, 1.0, 1.0), (1.0, 2.0, 0.0)).unwrap();
     let pn = pn!((0.0, 1.0, 0.0), (1.0, 1.0, 1.0), (0.0, 2.0, 1.0)).unwrap();
-    assert!(calc_line_plane_intersection(&ln, &pn).unwrap().is_superposition(&p!(1.0/3.0, 4.0/3.0, 2.0/3.0)));
+    assert!(calc_line_plane_intersection(&ln, &pn)
+        .unwrap()
+        .is_superposition(&p!(1.0 / 3.0, 4.0 / 3.0, 2.0 / 3.0)));
 
     let pn1 = pn!((0.0, 1.0, 0.0), (1.0, 1.0, 1.0), (0.0, 2.0, 1.0)).unwrap();
     let pn2 = pn!((0.0, 1.0, 1.0), (1.0, 1.0, 0.0), (0.0, 2.0, 0.0)).unwrap();
-    assert!(calc_plane_intersection(&pn1, &pn2).unwrap().is_superposition(
-        &ln!((k11:1.0, k12:1.0, k13:0.0, b1:3.0/2.0), (k21:0.0, k22:0.0, k23:1.0, b2:1.0/2.0)).unwrap()
-    ))
+    assert!(calc_plane_intersection(&pn1, &pn2)
+        .unwrap()
+        .is_superposition(
+            &ln!((k11:1.0, k12:1.0, k13:0.0, b1:3.0/2.0), (k21:0.0, k22:0.0, k23:1.0, b2:1.0/2.0))
+                .unwrap()
+        ))
 }

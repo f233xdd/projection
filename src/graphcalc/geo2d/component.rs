@@ -1,13 +1,8 @@
 use std::fmt;
 
 use super::{
+    super::{algebra::vector::PlaneVec, geo_err, interface, GeoResult},
     tool::*,
-    super::{
-        algebra::vector::PlaneVec,
-        geo_err,
-        GeoResult,
-        interface,
-    },
 };
 
 pub struct Point {
@@ -17,13 +12,14 @@ pub struct Point {
 
 impl Point {
     pub fn new(x: f64, y: f64) -> Self {
-        Self {x, y}
+        Self { x, y }
     }
     pub fn pos(&self) -> (f64, f64) {
         (self.x, self.y)
     }
     pub fn move_to(&mut self, x: f64, y: f64) {
-        self.x = x; self.y = y;
+        self.x = x;
+        self.y = y;
     }
 }
 
@@ -59,9 +55,8 @@ impl interface::CalcDistance<Line, f64> for Point {
 
 /// k1 * x + k2 * y = b
 pub struct Line {
-    fn_args: (f64, f64, f64)
+    fn_args: (f64, f64, f64),
 }
-
 
 impl Line {
     /// k1 * x + k2 * y = b
@@ -69,13 +64,15 @@ impl Line {
         if k1 == 0.0 && k2 == 0.0 {
             Err(geo_err::InvalidFnArgError())
         } else {
-            Ok(Self {fn_args: (k1, k2, b)})
+            Ok(Self {
+                fn_args: (k1, k2, b),
+            })
         }
-    } 
+    }
     pub fn from(p1: &Point, p2: &Point) -> Result<Self, geo_err::SuperpositionError> {
         match calc_line_fn(p1, p2) {
-            Ok(func_args) => Ok(Self {fn_args: func_args}),
-            Err(e) => Err(e)
+            Ok(func_args) => Ok(Self { fn_args: func_args }),
+            Err(e) => Err(e),
         }
     }
     pub fn fn_args(&self) -> (f64, f64, f64) {
@@ -95,7 +92,8 @@ impl fmt::Display for Line {
             write!(f, "x").unwrap();
         } else if k1 == -1.0 {
             write!(f, "-x").unwrap();
-        } else if k1 == 0.0 {} else {
+        } else if k1 == 0.0 {
+        } else {
             write!(f, "{k1}x").unwrap();
         }
 
@@ -121,7 +119,7 @@ impl interface::Contain<Point> for Line {
 impl interface::Parallel<Line> for Line {
     fn is_parallel(&self, cpt: &Line) -> bool {
         is_parallel(self, cpt)
-    }   
+    }
 }
 impl interface::Vertical<Line> for Line {
     fn is_vertical(&self, cpt: &Line) -> bool {

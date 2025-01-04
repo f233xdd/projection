@@ -1,11 +1,12 @@
 // this mod is not done yet
-mod tree;
+pub mod calc;
+pub mod err;
 mod expr;
 pub mod lexer;
-pub mod calc;
+mod tree;
 pub mod vector;
 
-pub use tree::{NameSpace, MathFn, Node};
+pub use tree::{MathFn, NameSpace, Node};
 
 pub enum Num<A, R> {
     Algebra(A),

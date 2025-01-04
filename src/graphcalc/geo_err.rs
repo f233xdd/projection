@@ -1,4 +1,4 @@
-use std::{error, fmt,};
+use std::{error, fmt};
 
 #[derive(Debug)]
 pub struct ParallelError();
@@ -31,14 +31,14 @@ impl fmt::Display for VerticalError {
 impl error::Error for VerticalError {}
 
 #[derive(Debug)]
-pub struct NotVertincalError();
+pub struct NotVerticalError();
 
-impl fmt::Display for NotVertincalError {
+impl fmt::Display for NotVerticalError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "NotVertincalError")
+        write!(f, "NotVerticalError")
     }
 }
-impl error::Error for NotVertincalError {}
+impl error::Error for NotVerticalError {}
 
 #[derive(Debug)]
 pub struct IncludedError();
@@ -95,7 +95,7 @@ pub enum PositionError {
     ParallelError(ParallelError),
     NotParallelError(NotParallelError),
     VerticalError(VerticalError),
-    NotVertincalError(NotVertincalError),
+    NotVerticalError(NotVerticalError),
     IncludedError(IncludedError),
     NotIncludedError(NotIncludedError),
     CoplanarError(CoplanarError),
@@ -109,7 +109,7 @@ impl fmt::Display for PositionError {
             Self::ParallelError(e) => e.fmt(f),
             Self::NotParallelError(e) => e.fmt(f),
             Self::VerticalError(e) => e.fmt(f),
-            Self::NotVertincalError(e) => e.fmt(f),
+            Self::NotVerticalError(e) => e.fmt(f),
             Self::IncludedError(e) => e.fmt(f),
             Self::NotIncludedError(e) => e.fmt(f),
             Self::CoplanarError(e) => e.fmt(f),
@@ -125,7 +125,7 @@ impl error::Error for PositionError {
             Self::ParallelError(e) => Some(e),
             Self::NotParallelError(e) => Some(e),
             Self::VerticalError(e) => Some(e),
-            Self::NotVertincalError(e) => Some(e),
+            Self::NotVerticalError(e) => Some(e),
             Self::IncludedError(e) => Some(e),
             Self::NotIncludedError(e) => Some(e),
             Self::CoplanarError(e) => Some(e),
@@ -150,9 +150,9 @@ impl From<VerticalError> for PositionError {
         Self::VerticalError(value)
     }
 }
-impl From<NotVertincalError> for PositionError {
-    fn from(value: NotVertincalError) -> Self {
-        Self::NotVertincalError(value)
+impl From<NotVerticalError> for PositionError {
+    fn from(value: NotVerticalError) -> Self {
+        Self::NotVerticalError(value)
     }
 }
 impl From<IncludedError> for PositionError {
